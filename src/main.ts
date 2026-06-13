@@ -38,6 +38,10 @@ const COLOR_WHITE = "#FFFFFF";
 const COLOR_GORILLA = "#FFAA55";
 const COLOR_BANANA = "#FFFF55";
 const COLOR_EXPLOSION = "#FF0055";
+const COLOR_EXPLOSION_CYCLE = [
+    "#FFAA55",
+    "#FF0055"
+];
 
 const TEXT_COLUMN_SIZE = 80;
 const TEXT_ROW_SIZE = 25;
@@ -420,12 +424,32 @@ function qbasicRound(value: number): number {
  * NOTE: This should be a very close approximation of the function used by QBASIC from drawing circles.
  * See https://github.com/robhagemans/pcbasic/blob/13d358df17475c42e36961d459ebba4efd82026e/pcbasic/basic/display/graphics.py#L558-L753
  */
-function drawCircle(ctx: CanvasRenderingContext2D, centerX: number, centerY: number, radius: number, color: string): void {
+function drawCircle(
+    ctx: CanvasRenderingContext2D,
+    centerX: number,
+    centerY: number,
+    radius: number,
+    color: string,
+    aspect?: number,
+): void {
     const cx = qbasicRound(centerX);
     const cy = qbasicRound(centerY);
-    const radiusX = qbasicRound(radius);
     const pixelAspect = (SCREEN_HEIGHT * 4) / (SCREEN_WIDTH * 3);
-    const radiusY = qbasicRound(radiusX * pixelAspect);
+    const circleAspect = aspect ?? pixelAspect;
+
+    let radiusX: number;
+    let radiusY: number;
+
+    if (circleAspect === 1) {
+        radiusX = qbasicRound(radius);
+        radiusY = radiusX;
+    } else if (circleAspect > 1) {
+        radiusY = qbasicRound(radius);
+        radiusX = qbasicRound(radiusY / circleAspect);
+    } else {
+        radiusX = qbasicRound(radius);
+        radiusY = Math.abs(qbasicRound(radiusX * circleAspect));
+    }
 
     let x = radiusX;
     let y = 0;
@@ -480,6 +504,66 @@ async function animateSmallExplosion(ctx: CanvasRenderingContext2D, x: number, y
         // Note: The original game uses 0.005 here. On modern hardware, this is too short.
         await rest(0.05);
     }
+}
+
+async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: number): Promise<number> {
+    const playerHit = x < Math.floor(SCREEN_WIDTH / 2) ? 0 : 1;
+    const xScale = SCREEN_WIDTH / 320.0;
+    const yScale = SCREEN_HEIGHT / 200.0;
+    const xAdjust = 5;
+    const yAdjust = 12;
+
+    // TODO: Play gorilla explosion sound
+
+    for (let i = 1; i <= 8 * xScale; i++) {
+        const circleX = players[playerHit].x + 3.5 * xScale + xAdjust;
+        const circleY = players[playerHit].y + 7.0 * yScale + yAdjust;
+
+        drawCircle(ctx, circleX, circleY, i, COLOR_EXPLOSION, -1.57);
+
+        // NOTE: NO IDEA what this is supposed to be... but it's there in the original.
+        const lineY = players[playerHit].y + (9 * yScale) - i;
+        const lineStartX = players[playerHit].x + (7 * xScale);
+        const lineEndX = players[playerHit].x;
+
+        ctx.strokeStyle = COLOR_EXPLOSION;
+        ctx.moveTo(lineStartX, lineY);
+        ctx.lineTo(lineEndX, lineY)
+        ctx.stroke();
+    }
+
+    for (let i = 1; i <= 16 * xScale; i++) {
+        const circleX = players[playerHit].x + 3.5 * xScale + xAdjust;
+
+        if (i < 8 * xScale) {
+            const circleY = players[playerHit].y + 7.0 * yScale + yAdjust;
+            const radius = 8 * xScale + 1 - i;
+
+            drawCircle(ctx, circleX, circleY, radius, COLOR_SKY, -1.57);
+        }
+
+        const circleY = players[playerHit].y + yAdjust;
+        const color = COLOR_EXPLOSION_CYCLE[i % 2];
+        drawCircle(ctx, circleX, circleY, i, color, -1.57);
+    }
+
+    for (let i = 24 * xScale; i >= 1; i--) {
+        const circleX = players[playerHit].x + 3.5 * xScale + xAdjust;
+        const circleY = players[playerHit].y + yAdjust;
+
+        drawCircle(ctx, circleX, circleY, i, COLOR_SKY, -1.57);
+
+        /**
+         * NOTE: The original game busy waits for 200 loop iterations here.
+         * It does not use the rest function for some reason.
+         * Oirignal code:
+         * FOR Count = 1 TO 200
+         * NEXT
+         */
+        await rest(0.001);
+    }
+
+    return 1;
 }
 
 async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, player: Gorilla, angle_deg: number, velocity: number): Promise<number> {
@@ -597,9 +681,9 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, pla
     }
 
     if (impact && pixelColor !== COLOR_GORILLA) {
-        await animateSmallExplosion(ctx, x + adjustment, y + adjustment);
+        await explodeGorilla(ctx, x + adjustment, y + adjustment);
     } else if (pixelColor === COLOR_GORILLA) {
-
+        playerHit = await explodeGorilla(ctx, x, y);
     }
 
     return 0;
