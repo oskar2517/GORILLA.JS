@@ -413,7 +413,21 @@ function eraseShotInputFields(ctx: CanvasRenderingContext2D): void {
     }
 }
 
-async function doShot(ctx: CanvasRenderingContext2D, activePlayer: number, player: Gorilla): Promise<boolean> {
+async function doVictoryDance(ctx: CanvasRenderingContext2D, playerNumber: number): Promise<void> {
+    const player = players[playerNumber];
+
+    for (let i = 0; i < 4; i++) {
+        drawSprite(ctx, spr_gorilla_left_arm_up, player.x, player.y, COLOR_GORILLA);
+        // TODO: play sound
+        await rest(0.2);
+
+        drawSprite(ctx, spr_gorilla_right_arm_up, player.x, player.y, COLOR_GORILLA);
+        // TODO: play sound
+        await rest(0.2);
+    }
+}
+
+async function doShot(ctx: CanvasRenderingContext2D, activePlayer: number): Promise<number> {
     const inputColumn = activePlayer == 0 ? 1 : 66;
 
     drawText(ctx, inputColumn, 2, "Angle:");
@@ -433,12 +447,19 @@ async function doShot(ctx: CanvasRenderingContext2D, activePlayer: number, playe
 
     eraseShotInputFields(ctx);
 
-    const playerHit = await plotShot(ctx, activePlayer, player, angle, velocity);
+    const playerHit = await plotShot(ctx, activePlayer, angle, velocity);
     if (playerHit == -1) { // No player hit
-        return false;
+        return -1;
     }
 
-    return false;
+    let winningPlayer = activePlayer;
+    if (playerHit === activePlayer) {
+        winningPlayer = 1 - activePlayer;
+    }
+
+    await doVictoryDance(ctx, winningPlayer);
+
+    return winningPlayer;
 }
 
 function drawBanana(ctx: CanvasRenderingContext2D, x: number, y: number, rotation: number, erase: boolean): void {
@@ -609,10 +630,12 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
          */
     });
 
-    return 1;
+    return playerHit;
 }
 
-async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, player: Gorilla, angle_deg: number, velocity: number): Promise<number> {
+async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, angle_deg: number, velocity: number): Promise<number> {
+    const player = players[activePlayer];
+
     const angle = angle_deg / 180 * Math.PI;
     const initialXVelocity = Math.cos(angle) * velocity;
     const initialYVelocity = Math.sin(angle) * velocity;
@@ -727,17 +750,30 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, pla
     }
 
     if (impact && pixelColor !== COLOR_GORILLA) {
-        await explodeGorilla(ctx, x + adjustment, y + adjustment);
+        await animateSmallExplosion(ctx, x + adjustment, y + adjustment);
     } else if (pixelColor === COLOR_GORILLA) {
         playerHit = await explodeGorilla(ctx, x, y);
     }
 
-    return 0;
+    return playerHit;
+}
+
+function updateScores(wins: number[], playerNumber: number, result: number) {
+    /*
+     * NOTE: HIT_SELF is +1, but DoShot returns QBasic TRUE (-1) for every
+     * gorilla hit, so this branch is never reached. Scoring still works because
+     * QBASIC passes PlayerNum by reference: DoShot changes the caller's Tosser
+     * to the opponent on a self-hit before UpdateScores is called.
+     */
+    if (result === 1) {
+        wins[1 - playerNumber]++;
+    } else {
+        wins[playerNumber]++;
+    }
 }
 
 async function startGame(ctx: CanvasRenderingContext2D, player1: string, player2: string, rounds: number): Promise<void> {
-    let player1Wins = 0;
-    let player2Wins = 0;
+    const wins = [0, 0];
     let activePlayer = 1;
 
     for (let r = 0; r <= rounds; r++) {
@@ -751,14 +787,21 @@ async function startGame(ctx: CanvasRenderingContext2D, player1: string, player2
 
             drawText(ctx, 1, 1, player1);
             drawText(ctx, (TEXT_COLUMN_SIZE - 1 - player2.length), 1, player2);
-            drawCenteredText(ctx, 23, `${player1Wins}>Score<${player2Wins}`);
+            drawCenteredText(ctx, 23, `${wins[0]}>Score<${wins[1]}`);
 
-            roundIsOver = await doShot(ctx, activePlayer, players[activePlayer]);
+            const scoringPlayer = await doShot(ctx, activePlayer);
+            roundIsOver = scoringPlayer !== -1;
 
-            break;
+            if (roundIsOver) {
+                /*
+                * scoringPlayer reproduces the value left in QBASIC's by-reference
+                * Tosser argument after DoShot returns.
+                */
+                updateScores(wins, scoringPlayer, -1);
+            }
         }
 
-        break;
+        await rest(1);
     }
 }
 
