@@ -543,6 +543,13 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, pla
             bananaNeedsErasing = false;
         }
 
+        /**
+         * NOTE: This additional delay simulates flickering of the banana.
+         * On original hardware this was simply caused by the budy time between
+         * undrawing the previous banana and redrawing the new one.
+         */
+        await rest(0.004);
+
         x = startXPosition
             + initialXVelocity * time
             + 0.5 * (wind / 5.0) * time * time;
