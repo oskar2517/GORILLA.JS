@@ -405,34 +405,78 @@ function drawBanana(ctx: CanvasRenderingContext2D, x: number, y: number, rotatio
     drawSprite(ctx, sprite, x, y, erase ? COLOR_SKY : COLOR_BANANA);
 }
 
-function drawCircle(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string, fill: boolean): void {
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
+function qbasicRound(value: number): number {
+    const lower = Math.floor(value);
+    const fraction = value - lower;
 
-    if (fill) {
-        ctx.fillStyle = color;
-        ctx.fill();
-    } else {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+    if (fraction === 0.5) {
+        return lower % 2 === 0 ? lower : lower + 1;
+    }
+
+    return Math.round(value);
+}
+
+/**
+ * NOTE: This should be a very close approximation of the function used by QBASIC from drawing circles.
+ * See https://github.com/robhagemans/pcbasic/blob/13d358df17475c42e36961d459ebba4efd82026e/pcbasic/basic/display/graphics.py#L558-L753
+ */
+function drawCircle(ctx: CanvasRenderingContext2D, centerX: number, centerY: number, radius: number, color: string): void {
+    const cx = qbasicRound(centerX);
+    const cy = qbasicRound(centerY);
+    const radiusX = qbasicRound(radius);
+    const pixelAspect = (SCREEN_HEIGHT * 4) / (SCREEN_WIDTH * 3);
+    const radiusY = qbasicRound(radiusX * pixelAspect);
+
+    let x = radiusX;
+    let y = 0;
+    let dx = 16 * (1 - 2 * radiusX) * radiusY * radiusY;
+    let dy = 16 * radiusX * radiusX;
+    const deltaDx = 32 * radiusY * radiusY;
+    const deltaDy = 32 * radiusX * radiusX;
+    let error = dx + dy;
+
+    ctx.fillStyle = color;
+
+    while (true) {
+        ctx.fillRect(cx + x, cy + y, 1, 1);
+        ctx.fillRect(cx + x, cy - y, 1, 1);
+        ctx.fillRect(cx - x, cy + y, 1, 1);
+        ctx.fillRect(cx - x, cy - y, 1, 1);
+
+        const doubledError = 2 * error;
+        if (doubledError <= dy) {
+            y++;
+            dy += deltaDy;
+            error += dy;
+        }
+        if (doubledError >= dx || doubledError > dy) {
+            x--;
+            dx += deltaDx;
+            error += dx;
+        }
+        if (x < 0) {
+            break;
+        }
+    }
+
+    while (y < radiusY) {
+        ctx.fillRect(cx, cy + y, 1, 1);
+        ctx.fillRect(cx, cy - y, 1, 1);
+        y++;
     }
 }
 
-async function animateSmallExplosion(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+async function animateSmallExplosion(ctx: CanvasRenderingContext2D, x: number, y: number): Promise<void> {
     // TODO: play explosion sound
 
     const radius = SCREEN_HEIGHT / 50;
 
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = COLOR_EXPLOSION;
-    ctx.fill();
-
-    drawCircle(ctx, x, y, radius, COLOR_EXPLOSION, true);
+    for (let r = 0; r <= radius; r += 0.5) {
+        drawCircle(ctx, x, y, r, COLOR_EXPLOSION);
+    }
 
     for (let r = radius; r >= 0; r -= 0.5) {
-        drawCircle(ctx, x, y, r, COLOR_SKY, false);
+        drawCircle(ctx, x, y, r, COLOR_SKY);
         // Note: The original game uses 0.005 here. On modern hardware, this is too short.
         await rest(0.05);
     }
