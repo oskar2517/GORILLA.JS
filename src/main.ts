@@ -68,7 +68,7 @@ async function loadImage(url: string): Promise<HTMLImageElement> {
 }
 
 function readBrowserKey(): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         window.addEventListener("keydown", (e: KeyboardEvent) => {
             resolve(e.key);
         }, { once: true });
@@ -570,7 +570,7 @@ async function animateSmallExplosion(ctx: CanvasRenderingContext2D, x: number, y
     }
 }
 
-async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: number): Promise<number> {
+async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number): Promise<number> {
     const playerHit = x < Math.floor(SCREEN_WIDTH / 2) ? 0 : 1;
     const xScale = SCREEN_WIDTH / 320.0;
     const yScale = SCREEN_HEIGHT / 200.0;
@@ -752,7 +752,7 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, ang
     if (impact && pixelColor !== COLOR_GORILLA) {
         await animateSmallExplosion(ctx, x + adjustment, y + adjustment);
     } else if (pixelColor === COLOR_GORILLA) {
-        playerHit = await explodeGorilla(ctx, x, y);
+        playerHit = await explodeGorilla(ctx, x);
     }
 
     return playerHit;
