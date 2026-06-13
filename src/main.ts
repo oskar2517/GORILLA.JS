@@ -796,6 +796,7 @@ async function startGame(ctx: CanvasRenderingContext2D, player1: string, player2
 
     for (let r = 0; r < rounds; r++) {
         clearScreen(ctx);
+        await rest(0.5);
         const buildings = await generateLevel(ctx);
         placeGorillas(ctx, buildings);
 
