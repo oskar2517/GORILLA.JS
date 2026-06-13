@@ -190,7 +190,7 @@ function randomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function drawBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number): void {
+async function drawBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number): Promise<void> {
     // QBASIC's LINE ... BF includes both endpoint pixels.
     ctx.fillStyle = COLOR_SKY;
     ctx.fillRect(x - 1, y - 1, width + 3, height + 3);
@@ -205,6 +205,9 @@ function drawBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, width
             ctx.fillStyle = color;
             ctx.fillRect(windowX, y + windowY, 4, 7);
         }
+
+        // NOTE: Simulate processing time
+        await rest(0.01);
     }
 }
 
@@ -236,7 +239,7 @@ function clearScreen(ctx: CanvasRenderingContext2D): void {
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-function generateLevel(ctx: CanvasRenderingContext2D): Point[] {
+async function generateLevel(ctx: CanvasRenderingContext2D): Promise<Point[]> {
     let slope = randomNumber(1, 6);
     let newHeight: number;
 
@@ -308,9 +311,12 @@ function generateLevel(ctx: CanvasRenderingContext2D): Point[] {
             y: bottom - height
         });
 
-        drawBuilding(ctx, x, bottom - height, width, height);
+        await drawBuilding(ctx, x, bottom - height, width, height);
 
         x += width + 2;
+
+        // NOTE: Simulate processing time
+        await rest(0.05);
     }
 
     wind = randomNumber(1, 10) - 5;
@@ -790,7 +796,7 @@ async function startGame(ctx: CanvasRenderingContext2D, player1: string, player2
 
     for (let r = 0; r < rounds; r++) {
         clearScreen(ctx);
-        const buildings = generateLevel(ctx);
+        const buildings = await generateLevel(ctx);
         placeGorillas(ctx, buildings);
 
         let roundIsOver = false;
