@@ -443,7 +443,9 @@ async function doShot(ctx: CanvasRenderingContext2D, activePlayer: number): Prom
     let angle = await readShotNumber(ctx, inputColumn + 7, 2);
 
     drawText(ctx, inputColumn, 3, "Velocity:");
-    const velocity = await readShotNumber(ctx, inputColumn + 10, 3);
+    const velocity = qbasicRound(
+        await readShotNumber(ctx, inputColumn + 10, 3),
+    );
 
     /*
     * Players enter an angle as if facing toward the center. Convert player
