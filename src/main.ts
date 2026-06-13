@@ -77,7 +77,13 @@ function getPixelAt(ctx: CanvasRenderingContext2D, x: number, y: number): string
     const canvasY = transform.b * x + transform.d * y + transform.f;
     const [r, g, b] = ctx.getImageData(canvasX, canvasY, 1, 1).data;
 
+    /**
+     * NOTE: For whatever reason, the exact color pixel values do not
+     * necessarily match what was drawn. I have no idea why this is happening
+     * but I am normalizing them the nearest EGA pallette...
+     */
     return `#${[r, g, b]
+        .map(value => Math.round(value / 0x55) * 0x55)
         .map(value => value.toString(16).padStart(2, "0"))
         .join("")}`.toUpperCase();
 }
@@ -427,7 +433,8 @@ async function animateSmallExplosion(ctx: CanvasRenderingContext2D, x: number, y
 
     for (let r = radius; r >= 0; r -= 0.5) {
         drawCircle(ctx, x, y, r, COLOR_SKY, false);
-        await rest(0.005);
+        // Note: The original game uses 0.005 here. On modern hardware, this is too short.
+        await rest(0.05);
     }
 }
 
@@ -481,7 +488,11 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, pla
     let y = player.y;
 
     while (!impact && onScreen) {
-        await rest(0.02);
+        /**
+         * NOTE: The original game rests for 0.02 seconds. However,
+         * on modern hardware, this extra delay is too small.
+         */
+        await rest(0.05);
 
         if (bananaNeedsErasing) {
             drawBanana(ctx, oldX, oldY, oldRotation, true);
@@ -521,6 +532,7 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, pla
 
             if (!impact) {
                 const rotation = Math.floor(time * 10) % 4;
+
                 drawBanana(ctx, x, y, rotation, false);
                 bananaNeedsErasing = true;
                 oldRotation = rotation;
