@@ -381,7 +381,6 @@ function placeGorillas(ctx: CanvasRenderingContext2D, buildings: Point[]): void 
 
 async function readShotNumber(ctx: CanvasRenderingContext2D, col: number, row: number): Promise<number> {
     let result = "";
-    let readDot = false;
 
     while (true) {
         drawText(ctx, col, row, result + "_    ");
@@ -389,14 +388,13 @@ async function readShotNumber(ctx: CanvasRenderingContext2D, col: number, row: n
 
         if (/^[0-9]$/.test(key)) {
             result += key;
-        } else if (key === "." && !readDot) {
-            readDot = true;
+        } else if (key === "." && !result.includes(".")) {
             result += key;
         } else if (key === "Backspace" && result.length > 0) {
             result = result.substring(0, result.length - 1);
         } else if (key === "Enter") {
             const n = parseFloat(result);
-            if (n <= 360) {
+            if (result === "" || n <= 360) {
                 break;
             }
             result = "";
@@ -407,6 +405,10 @@ async function readShotNumber(ctx: CanvasRenderingContext2D, col: number, row: n
     }
 
     drawText(ctx, col, row, result + " ");
+
+    if (result === "") {
+        return 0;
+    }
 
     return parseFloat(result);
 }
