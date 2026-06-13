@@ -419,11 +419,11 @@ async function doVictoryDance(ctx: CanvasRenderingContext2D, playerNumber: numbe
     for (let i = 0; i < 4; i++) {
         drawSprite(ctx, spr_gorilla_left_arm_up, player.x, player.y, COLOR_GORILLA);
         // TODO: play sound
-        await rest(0.2);
+        await rest(0.4);
 
         drawSprite(ctx, spr_gorilla_right_arm_up, player.x, player.y, COLOR_GORILLA);
         // TODO: play sound
-        await rest(0.2);
+        await rest(0.4);
     }
 }
 
