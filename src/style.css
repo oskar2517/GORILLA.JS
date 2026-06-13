@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "IBM EGA 8x14";
+    src: url("./assets/Web437_IBM_EGA_8x14.woff") format("woff");
+}
+
 * {
     box-sizing: border-box;
     padding: 0;
