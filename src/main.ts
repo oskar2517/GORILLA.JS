@@ -88,7 +88,7 @@ function getPixelAt(ctx: CanvasRenderingContext2D, x: number, y: number): string
     const [r, g, b] = ctx.getImageData(canvasX, canvasY, 1, 1).data;
 
     /**
-     * NOTE: For whatever reason, the exact color pixel values do not
+     * NOTE: For whatever reason, the exact color values of pixels do not
      * necessarily match what was drawn. I have no idea why this is happening
      * but I am normalizing them the nearest EGA pallette...
      */
