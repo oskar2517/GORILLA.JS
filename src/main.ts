@@ -77,8 +77,14 @@ function readBrowserKey(): Promise<string> {
 
 function getPixelAt(ctx: CanvasRenderingContext2D, x: number, y: number): string {
     const transform = ctx.getTransform();
-    const canvasX = transform.a * x + transform.c * y + transform.e;
-    const canvasY = transform.b * x + transform.d * y + transform.f;
+    const logicalX = qbasicRound(x);
+    const logicalY = qbasicRound(y);
+    const canvasX = Math.round(
+        transform.a * logicalX + transform.c * logicalY + transform.e,
+    );
+    const canvasY = Math.round(
+        transform.b * logicalX + transform.d * logicalY + transform.f,
+    );
     const [r, g, b] = ctx.getImageData(canvasX, canvasY, 1, 1).data;
 
     /**
