@@ -435,7 +435,12 @@ function drawCircle(
     const cx = qbasicRound(centerX);
     const cy = qbasicRound(centerY);
     const pixelAspect = (SCREEN_HEIGHT * 4) / (SCREEN_WIDTH * 3);
-    const circleAspect = aspect ?? pixelAspect;
+    let circleAspect = aspect ?? pixelAspect;
+
+    // QuickBASIC uses the reciprocal magnitude for a negative aspect.
+    if (circleAspect < 0) {
+        circleAspect = -1 / circleAspect;
+    }
 
     let radiusX: number;
     let radiusY: number;
@@ -448,7 +453,7 @@ function drawCircle(
         radiusX = qbasicRound(radiusY / circleAspect);
     } else {
         radiusX = qbasicRound(radius);
-        radiusY = Math.abs(qbasicRound(radiusX * circleAspect));
+        radiusY = qbasicRound(radiusX * circleAspect);
     }
 
     let x = radiusX;
@@ -530,6 +535,7 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
         ctx.moveTo(lineStartX, lineY);
         ctx.lineTo(lineEndX, lineY)
         ctx.stroke();
+        await rest(0.00001);
     }
 
     for (let i = 1; i <= 16 * xScale; i++) {
@@ -545,6 +551,7 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
         const circleY = players[playerHit].y + yAdjust;
         const color = COLOR_EXPLOSION_CYCLE[i % 2];
         drawCircle(ctx, circleX, circleY, i, color, -1.57);
+        await rest(0.00001);
     }
 
     for (let i = 24 * xScale; i >= 1; i--) {
@@ -560,7 +567,7 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
          * FOR Count = 1 TO 200
          * NEXT
          */
-        await rest(0.001);
+        await rest(0.00001);
     }
 
     return 1;
