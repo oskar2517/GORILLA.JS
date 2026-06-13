@@ -212,6 +212,7 @@ if (!ctx) {
 }
 
 ctx.imageSmoothingEnabled = false;
+ctx.scale(2, 2);
 
 const buildings = generateLevel(ctx);
 placeGorillas(ctx, buildings);
