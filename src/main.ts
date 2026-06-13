@@ -122,6 +122,44 @@ function rest(seconds: number): Promise<void> {
     });
 }
 
+function animateSteps(stepCount: number, durationSeconds: number, drawStep: (step: number) => void): Promise<void> {
+    const totalSteps = Math.max(0, Math.floor(stepCount));
+    const durationMs = durationSeconds * 1000;
+
+    return new Promise(resolve => {
+        if (totalSteps === 0) {
+            resolve();
+            return;
+        }
+
+        let firstFrameTime: number | undefined;
+        let nextStep = 0;
+
+        const drawFrame = (frameTime: number): void => {
+            firstFrameTime ??= frameTime;
+
+            const elapsed = frameTime - firstFrameTime;
+            const targetStep = Math.min(
+                totalSteps,
+                Math.floor(elapsed / durationMs * totalSteps) + 1,
+            );
+
+            while (nextStep < targetStep) {
+                drawStep(nextStep);
+                nextStep++;
+            }
+
+            if (nextStep < totalSteps) {
+                requestAnimationFrame(drawFrame);
+            } else {
+                resolve();
+            }
+        };
+
+        requestAnimationFrame(drawFrame);
+    });
+}
+
 /**
  * NOTE: Text wrap behavior is currently missing.
  */
@@ -520,7 +558,8 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
 
     // TODO: Play gorilla explosion sound
 
-    for (let i = 1; i <= 8 * xScale; i++) {
+    await animateSteps(8 * xScale, 0.1, step => {
+        const i = step + 1;
         const circleX = players[playerHit].x + 3.5 * xScale + xAdjust;
         const circleY = players[playerHit].y + 7.0 * yScale + yAdjust;
 
@@ -531,14 +570,15 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
         const lineStartX = players[playerHit].x + (7 * xScale);
         const lineEndX = players[playerHit].x;
 
+        ctx.beginPath();
         ctx.strokeStyle = COLOR_EXPLOSION;
         ctx.moveTo(lineStartX, lineY);
-        ctx.lineTo(lineEndX, lineY)
+        ctx.lineTo(lineEndX, lineY);
         ctx.stroke();
-        await rest(0.00001);
-    }
+    });
 
-    for (let i = 1; i <= 16 * xScale; i++) {
+    await animateSteps(16 * xScale, 0.3, step => {
+        const i = step + 1;
         const circleX = players[playerHit].x + 3.5 * xScale + xAdjust;
 
         if (i < 8 * xScale) {
@@ -551,10 +591,11 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
         const circleY = players[playerHit].y + yAdjust;
         const color = COLOR_EXPLOSION_CYCLE[i % 2];
         drawCircle(ctx, circleX, circleY, i, color, -1.57);
-        await rest(0.00001);
-    }
+    });
 
-    for (let i = 24 * xScale; i >= 1; i--) {
+    const finalPhaseSteps = 24 * xScale;
+    await animateSteps(finalPhaseSteps, 0.4, step => {
+        const i = finalPhaseSteps - step;
         const circleX = players[playerHit].x + 3.5 * xScale + xAdjust;
         const circleY = players[playerHit].y + yAdjust;
 
@@ -562,13 +603,11 @@ async function explodeGorilla(ctx: CanvasRenderingContext2D, x: number, y: numbe
 
         /**
          * NOTE: The original game busy waits for 200 loop iterations here.
-         * It does not use the rest function for some reason.
          * Oirignal code:
          * FOR Count = 1 TO 200
          * NEXT
          */
-        await rest(0.00001);
-    }
+    });
 
     return 1;
 }
