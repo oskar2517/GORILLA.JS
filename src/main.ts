@@ -218,6 +218,7 @@ function drawWind(ctx: CanvasRenderingContext2D): void {
     const lineX = Math.floor(SCREEN_WIDTH / 2);
     const lineY = SCREEN_HEIGHT - 5;
 
+    ctx.beginPath();
     ctx.strokeStyle = COLOR_WIND_ARROW;
     ctx.lineWidth = 1;
     ctx.moveTo(lineX, lineY);
