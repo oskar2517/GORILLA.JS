@@ -591,7 +591,6 @@ if (!ctx) {
 await document.fonts.load('14px "IBM EGA 8x14"');
 
 ctx.imageSmoothingEnabled = false;
-ctx.scale(2, 2);
 ctx.font = '14px "IBM EGA 8x14"';
 ctx.textBaseline = "top";
 

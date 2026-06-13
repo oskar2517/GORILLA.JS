@@ -17,4 +17,7 @@ body {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
+    width: 1280px;
+    height: 700px;
+    image-rendering: pixelated;
 }
