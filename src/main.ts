@@ -770,7 +770,7 @@ async function plotShot(ctx: CanvasRenderingContext2D, activePlayer: number, ang
     return playerHit;
 }
 
-function updateScores(wins: number[], playerNumber: number, result: number) {
+function updateScores(wins: number[], playerNumber: number, result: number): void {
     /*
      * NOTE: HIT_SELF is +1, but DoShot returns QBasic TRUE (-1) for every
      * gorilla hit, so this branch is never reached. Scoring still works because
