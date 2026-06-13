@@ -288,7 +288,10 @@ function generateLevel(ctx: CanvasRenderingContext2D): Point[] {
             width = SCREEN_WIDTH - x - 2;
         }
 
-        let height = randomNumber(heightStep, 120) + newHeight;
+        let height = randomNumber(1, 120) + newHeight;
+        if (height < heightStep) {
+            height = heightStep;
+        }
 
         /**
          * NOTE: In the original source code, there was the following if statement:
