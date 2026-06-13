@@ -191,21 +191,19 @@ function randomNumber(min: number, max: number): number {
 }
 
 function drawBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number): void {
-    /**
-     * NOTE: The original game draws an outline of the building in the background color first.
-     * This outline is exactly one pixel taller and wider than the original building.
-     * This might have been done to ensure a gap between building, however, it was unncessary
-     * given the fact that the x counter is incremented with width + 2 anyway.
-     */
+    // QBASIC's LINE ... BF includes both endpoint pixels.
+    ctx.fillStyle = COLOR_SKY;
+    ctx.fillRect(x - 1, y - 1, width + 3, height + 3);
+
     ctx.fillStyle = COLOR_BUILDINGS[randomNumber(0, COLOR_BUILDINGS.length - 1)];
-    ctx.fillRect(x, y, width, height);
+    ctx.fillRect(x, y, width + 1, height + 1);
 
     for (let windowX = x + 3; windowX < x + width - 3; windowX += 10) {
-        for (let windowY = 3; windowY < height - 7; windowY += 15) {
+        for (let windowY = 3; windowY <= height - 7; windowY += 15) {
             const color = randomNumber(1, 4) === 1 ? COLOR_WINDOW_DARK : COLOR_WINDOW_LIT;
 
             ctx.fillStyle = color;
-            ctx.fillRect(windowX, y + windowY, 3, 6);
+            ctx.fillRect(windowX, y + windowY, 4, 7);
         }
     }
 }
