@@ -24,6 +24,8 @@ export interface Sprites {
         HTMLImageElement,
         HTMLImageElement,
     ];
+    sunHappy: HTMLImageElement;
+    sunShocked: HTMLImageElement;
 }
 
 export type GameInputAction = "game" | "intro";
@@ -34,4 +36,14 @@ export interface GameInputs {
     rounds: number;
     gravity: number;
     nextAction: GameInputAction;
+}
+
+export interface ShotResult {
+    playerHit: number;
+    sunHit: boolean;
+}
+
+export interface TurnResult {
+    scoringPlayer: number;
+    sunHit: boolean;
 }

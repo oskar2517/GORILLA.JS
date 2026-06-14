@@ -4,6 +4,7 @@ import {
     COLOR_EXPLOSION_CYCLE,
     COLOR_GORILLA,
     COLOR_SKY,
+    COLOR_SUN,
     HIT_SELF,
     NO_PLAYER,
     QBASIC_TRUE,
@@ -17,6 +18,7 @@ import {
     drawCenteredText,
     drawCircle,
     drawSprite,
+    drawSun,
     drawText,
     drawWind,
     getPixelAt,
@@ -28,7 +30,14 @@ import {
     readBrowserKey,
     rest,
 } from "./runtime";
-import type { GameInputs, GameState, Point, Sprites } from "./types";
+import type {
+    GameInputs,
+    GameState,
+    Point,
+    ShotResult,
+    Sprites,
+    TurnResult,
+} from "./types";
 
 function createGameState(gravity: number): GameState {
     return {
@@ -357,7 +366,7 @@ async function plotShot(
     activePlayer: number,
     angleDegrees: number,
     velocity: number,
-): Promise<number> {
+): Promise<ShotResult> {
     const player = state.players[activePlayer];
     const angle = angleDegrees / 180 * Math.PI;
     const initialXVelocity = Math.cos(angle) * velocity;
@@ -388,6 +397,8 @@ async function plotShot(
     let bananaNeedsErasing = false;
     let playerHit = NO_PLAYER;
     let pixelColor = COLOR_SKY;
+    let shotInSun = false;
+    let sunHit = false;
 
     let startXPosition = player.x;
     const startYPosition = player.y - adjustment - 3;
@@ -447,13 +458,28 @@ async function plotShot(
             do {
                 pixelColor = getPixelAt(ctx, x + sampleX, y + sampleY);
 
-                // TODO: handle sun
-                impact = pixelColor !== COLOR_SKY;
+                if (pixelColor === COLOR_SKY) {
+                    impact = false;
+
+                    if (shotInSun && (Math.abs(Math.floor(SCREEN_WIDTH / 2) - x) > 20 || y > 39)) {
+                        shotInSun = false;
+                    }
+                } else if (pixelColor === COLOR_SUN && y < 39) {
+                    if (!sunHit) {
+                        drawSun(ctx, sprites, true);
+                    }
+
+                    sunHit = true;
+                    shotInSun = true;
+                } else {
+                    impact = true;
+                }
+
                 sampleX += collisionSampleDirection;
                 sampleY += 6;
             } while (!impact && sampleX === 4);
 
-            if (!impact) {
+            if (!shotInSun && !impact) {
                 const rotation = Math.floor(time * 10) % 4;
                 drawBanana(ctx, sprites, x, y, rotation, false);
                 bananaNeedsErasing = true;
@@ -473,7 +499,10 @@ async function plotShot(
         playerHit = await explodeGorilla(ctx, state, x);
     }
 
-    return playerHit;
+    return {
+        playerHit,
+        sunHit,
+    };
 }
 
 async function doShot(
@@ -481,7 +510,7 @@ async function doShot(
     state: GameState,
     sprites: Sprites,
     activePlayer: number,
-): Promise<number> {
+): Promise<TurnResult> {
     const inputColumn = activePlayer === 0 ? 1 : 66;
 
     drawText(ctx, inputColumn, 2, "Angle:");
@@ -503,7 +532,7 @@ async function doShot(
 
     eraseShotInputFields(ctx);
 
-    const playerHit = await plotShot(
+    const shotResult = await plotShot(
         ctx,
         state,
         sprites,
@@ -511,16 +540,22 @@ async function doShot(
         angle,
         velocity,
     );
-    if (playerHit === NO_PLAYER) { // No player hit
-        return NO_PLAYER;
+    if (shotResult.playerHit === NO_PLAYER) { // No player hit
+        return {
+            scoringPlayer: NO_PLAYER,
+            sunHit: shotResult.sunHit,
+        };
     }
 
-    const winningPlayer = playerHit === activePlayer
+    const winningPlayer = shotResult.playerHit === activePlayer
         ? 1 - activePlayer
         : activePlayer;
     await doVictoryDance(ctx, state, sprites, winningPlayer);
 
-    return winningPlayer;
+    return {
+        scoringPlayer: winningPlayer,
+        sunHit: shotResult.sunHit,
+    };
 }
 
 function updateScores(
@@ -556,6 +591,7 @@ export async function startGame(
 
         const buildings = await generateLevel(ctx, state);
         placeGorillas(ctx, state, sprites, buildings);
+        drawSun(ctx, sprites, false);
 
         let roundIsOver = false;
         while (!roundIsOver) {
@@ -570,12 +606,18 @@ export async function startGame(
             );
             drawCenteredText(ctx, 23, `${wins[0]}>Score<${wins[1]}`);
 
-            const scoringPlayer = await doShot(
+            const shotResult = await doShot(
                 ctx,
                 state,
                 sprites,
                 activePlayer,
             );
+            const scoringPlayer = shotResult.scoringPlayer;
+
+            if (shotResult.sunHit) {
+                drawSun(ctx, sprites, false);
+            }
+
             roundIsOver = scoringPlayer !== NO_PLAYER;
 
             if (roundIsOver) {

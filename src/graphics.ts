@@ -10,9 +10,11 @@ import {
     TEXT_ROW_COUNT,
     COLOR_WIND_ARROW,
     COLOR_RED,
-    COLOR_BLACK
+    COLOR_BLACK,
+    COLOR_SUN
 } from "./constants";
 import { qbasicRound, randomNumber, rest } from "./runtime";
+import type { Sprites } from "./types";
 
 export function getPixelAt(
     ctx: CanvasRenderingContext2D,
@@ -281,5 +283,23 @@ export function drawSparkleBox(
 
         drawText(ctx, TEXT_COLUMN_COUNT, row, character, COLOR_RED, COLOR_BLACK);
         drawText(ctx, 1, 23 - row, character, COLOR_RED, COLOR_BLACK);
+    }
+}
+
+export function drawSun(ctx: CanvasRenderingContext2D, sprites: Sprites, mouthOpen: boolean) {
+    const w = sprites.sunHappy.naturalWidth;
+    const h = sprites.sunHappy.naturalHeight;
+
+    const x = Math.floor(SCREEN_WIDTH / 2) - Math.floor(w / 2);
+    const y = 25 - Math.floor(h / 2);
+
+    // Overwrite old sun
+    ctx.fillStyle = COLOR_SKY;
+    ctx.fillRect(x, y, w, h);
+
+    if (mouthOpen) {
+        drawSprite(ctx, sprites.sunShocked, x, y, COLOR_SUN);
+    } else {
+        drawSprite(ctx, sprites.sunHappy, x, y, COLOR_SUN);
     }
 }

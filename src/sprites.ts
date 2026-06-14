@@ -5,6 +5,8 @@ import imgBananaUp from "./assets/banana_up.png";
 import imgGorillaArmsDown from "./assets/gorilla.png";
 import imgGorillaLeftArmUp from "./assets/gorilla_left_arm_up.png";
 import imgGorillaRightArmUp from "./assets/gorilla_right_arm_up.png";
+import imgSunHappy from "./assets/sun_happy.png";
+import imgSunShocked from "./assets/sun_shocked.png";
 import { loadImage } from "./runtime";
 import type { Sprites } from "./types";
 
@@ -16,6 +18,8 @@ export async function loadSprites(): Promise<Sprites> {
     const bananaRight = await loadImage(imgBananaRight);
     const bananaUp = await loadImage(imgBananaUp);
     const bananaDown = await loadImage(imgBananaDown);
+    const sunHappy = await loadImage(imgSunHappy);
+    const sunShocked = await loadImage(imgSunShocked);
 
     return {
         gorillaArmsDown,
@@ -27,5 +31,7 @@ export async function loadSprites(): Promise<Sprites> {
             bananaDown,
             bananaRight,
         ],
+        sunHappy,
+        sunShocked
     };
 }

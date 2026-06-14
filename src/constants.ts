@@ -21,6 +21,7 @@ export const COLOR_BLUE = "#0000AA";
 export const COLOR_GORILLA = "#FFAA55";
 export const COLOR_BANANA = "#FFFF55";
 export const COLOR_EXPLOSION = "#FF0055";
+export const COLOR_SUN = "#FFFF00";
 export const COLOR_EXPLOSION_CYCLE = [
     "#FFAA55",
     "#FF0055",
