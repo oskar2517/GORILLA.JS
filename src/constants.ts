@@ -13,7 +13,11 @@ export const COLOR_BUILDINGS = [
     "#00AAAA",
 ] as const;
 export const COLOR_WIND_ARROW = "#FF0055";
+export const COLOR_BLACK = "#000000";
+export const COLOR_GREY = "#AAAAAA";
 export const COLOR_WHITE = "#FFFFFF";
+export const COLOR_RED = "#AA0000";
+export const COLOR_BLUE = "#0000AA";
 export const COLOR_GORILLA = "#FFAA55";
 export const COLOR_BANANA = "#FFFF55";
 export const COLOR_EXPLOSION = "#FF0055";
@@ -22,7 +26,6 @@ export const COLOR_EXPLOSION_CYCLE = [
     "#FF0055",
 ] as const;
 
-export const DEFAULT_GRAVITY = 9.8; // TODO: read from user
 export const NO_PLAYER = -1;
 export const QBASIC_TRUE = -1;
 export const HIT_SELF = 1;

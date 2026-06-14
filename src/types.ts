@@ -25,3 +25,13 @@ export interface Sprites {
         HTMLImageElement,
     ];
 }
+
+export type GameInputAction = "game" | "intro";
+
+export interface GameInputs {
+    player1Name: string;
+    player2Name: string;
+    rounds: number;
+    gravity: number;
+    nextAction: GameInputAction;
+}

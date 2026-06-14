@@ -4,7 +4,6 @@ import {
     COLOR_EXPLOSION_CYCLE,
     COLOR_GORILLA,
     COLOR_SKY,
-    DEFAULT_GRAVITY,
     HIT_SELF,
     NO_PLAYER,
     QBASIC_TRUE,
@@ -29,11 +28,11 @@ import {
     readBrowserKey,
     rest,
 } from "./runtime";
-import type { GameState, Point, Sprites } from "./types";
+import type { GameInputs, GameState, Point, Sprites } from "./types";
 
-function createGameState(): GameState {
+function createGameState(gravity: number): GameState {
     return {
-        gravity: DEFAULT_GRAVITY,
+        gravity,
         wind: 0,
         players: [
             { x: 0, y: 0 },
@@ -545,16 +544,14 @@ function updateScores(
 export async function startGame(
     ctx: CanvasRenderingContext2D,
     sprites: Sprites,
-    player1: string,
-    player2: string,
-    rounds: number,
-): Promise<void> {
-    const state = createGameState();
+    gameInputs: GameInputs
+): Promise<[number, number]> {
+    const state = createGameState(gameInputs.gravity);
     const wins: [number, number] = [0, 0];
     let activePlayer = 1;
 
-    for (let round = 0; round < rounds; round++) {
-        clearScreen(ctx);
+    for (let round = 0; round < gameInputs.rounds; round++) {
+        clearScreen(ctx, COLOR_SKY);
         await rest(0.5);
 
         const buildings = await generateLevel(ctx, state);
@@ -564,12 +561,12 @@ export async function startGame(
         while (!roundIsOver) {
             activePlayer = 1 - activePlayer;
 
-            drawText(ctx, 1, 1, player1);
+            drawText(ctx, 1, 1, gameInputs.player1Name);
             drawText(
                 ctx,
-                TEXT_COLUMN_COUNT - 1 - player2.length,
+                TEXT_COLUMN_COUNT - 1 - gameInputs.player2Name.length,
                 1,
-                player2,
+                gameInputs.player2Name,
             );
             drawCenteredText(ctx, 23, `${wins[0]}>Score<${wins[1]}`);
 
@@ -592,4 +589,6 @@ export async function startGame(
 
         await rest(1);
     }
+
+    return wins;
 }

@@ -1,3 +1,6 @@
+import { COLOR_BLACK, COLOR_WHITE } from "./constants";
+import { drawText } from "./graphics";
+
 export async function loadImage(url: string): Promise<HTMLImageElement> {
     const image = new Image();
     image.src = url;
@@ -10,6 +13,72 @@ export function readBrowserKey(): Promise<string> {
         window.addEventListener("keydown", event => {
             resolve(event.key);
         }, { once: true });
+    });
+}
+
+export function readInput(
+    ctx: CanvasRenderingContext2D,
+    column: number,
+    row: number,
+    prompt: string,
+    foregroundColor = COLOR_WHITE,
+    backgroundColor = COLOR_BLACK,
+): Promise<string> {
+    return new Promise(resolve => {
+        let result = "";
+        let cursorVisible = true;
+
+        const draw = (): void => {
+            const cursor = cursorVisible ? "_" : " ";
+            drawText(
+                ctx,
+                column,
+                row,
+                `${prompt}${result}${cursor} `,
+                foregroundColor,
+                backgroundColor,
+            );
+        };
+
+        const finish = (): void => {
+            window.clearInterval(cursorTimer);
+            window.removeEventListener("keydown", handleKey);
+            drawText(
+                ctx,
+                column,
+                row,
+                `${prompt}${result}  `,
+                foregroundColor,
+                backgroundColor,
+            );
+            resolve(result);
+        };
+
+        const handleKey = (event: KeyboardEvent): void => {
+            if (event.key.length === 1) {
+                result += event.key;
+            } else if (event.key === "Backspace" && result.length > 0) {
+                event.preventDefault();
+                result = result.substring(0, result.length - 1);
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                finish();
+                return;
+            } else {
+                return;
+            }
+
+            cursorVisible = true;
+            draw();
+        };
+
+        const cursorTimer = window.setInterval(() => {
+            cursorVisible = !cursorVisible;
+            draw();
+        }, 100);
+
+        window.addEventListener("keydown", handleKey);
+        draw();
     });
 }
 

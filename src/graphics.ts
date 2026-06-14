@@ -8,7 +8,9 @@ import {
     SCREEN_WIDTH,
     TEXT_COLUMN_COUNT,
     TEXT_ROW_COUNT,
-    COLOR_WIND_ARROW
+    COLOR_WIND_ARROW,
+    COLOR_RED,
+    COLOR_BLACK
 } from "./constants";
 import { qbasicRound, randomNumber, rest } from "./runtime";
 
@@ -149,8 +151,8 @@ export function drawWind(ctx: CanvasRenderingContext2D, wind: number): void {
     ctx.stroke();
 }
 
-export function clearScreen(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = COLOR_SKY;
+export function clearScreen(ctx: CanvasRenderingContext2D, color: string): void {
+    ctx.fillStyle = color;
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
@@ -257,5 +259,27 @@ export function drawCircle(
         ctx.fillRect(cx, cy + y, 1, 1);
         ctx.fillRect(cx, cy - y, 1, 1);
         y++;
+    }
+}
+
+export function drawSparkleBox(
+    ctx: CanvasRenderingContext2D,
+    phase: number,
+): void {
+    const sparkles = "*    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    ";
+
+    // Draw top and bottom row
+    const topStart = phase - 1;
+    const bottomStart = 5 - phase;
+    drawText(ctx, 1, 1, sparkles.slice(topStart, topStart + TEXT_COLUMN_COUNT), COLOR_RED, COLOR_BLACK);
+    drawText(ctx, 1, 22, sparkles.slice(bottomStart, bottomStart + TEXT_COLUMN_COUNT), COLOR_RED, COLOR_BLACK);
+
+    // Draw left and right row
+    for (let row = 2; row <= 21; row++) {
+        const sparklePosition = (phase + row) % 5;
+        const character = sparklePosition == 1 ? '*' : ' ';
+
+        drawText(ctx, TEXT_COLUMN_COUNT, row, character, COLOR_RED, COLOR_BLACK);
+        drawText(ctx, 1, 23 - row, character, COLOR_RED, COLOR_BLACK);
     }
 }
