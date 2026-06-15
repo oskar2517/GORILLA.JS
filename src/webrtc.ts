@@ -111,6 +111,8 @@ export async function chooseMultiplayerSession(): Promise<
     createAnswer.textContent = "Create answer";
     acceptAnswer.textContent = "Accept answer";
     local.readOnly = true;
+    local.placeholder = "Local";
+    remote.placeholder = "Remote";
 
     const elements = [
         localGame,
