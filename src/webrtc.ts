@@ -21,7 +21,7 @@ async function createDescription(
     const iceComplete = waitForIce(peer);
     await peer.setLocalDescription(description);
     await iceComplete;
-    output.value = JSON.stringify(peer.localDescription);
+    output.value = btoa(JSON.stringify(peer.localDescription));
 }
 
 function createSession(
@@ -154,12 +154,12 @@ export async function chooseMultiplayerSession(): Promise<
         resolveChoice(0);
     };
     createAnswer.onclick = async () => {
-        await peer.setRemoteDescription(JSON.parse(remote.value));
+        await peer.setRemoteDescription(JSON.parse(atob(remote.value)));
         await createDescription(peer, await peer.createAnswer(), local);
         resolveChoice(1);
     };
     acceptAnswer.onclick = async () => {
-        await peer.setRemoteDescription(JSON.parse(remote.value));
+        await peer.setRemoteDescription(JSON.parse(atob(remote.value)));
     };
 
     const player = await choice;
