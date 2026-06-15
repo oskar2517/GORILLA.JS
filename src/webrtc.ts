@@ -98,6 +98,8 @@ function createSession(
 export async function chooseMultiplayerSession(): Promise<
     MultiplayerSession | undefined
 > {
+    const multiplayerControls: HTMLDivElement = document.querySelector("#app")!!;
+
     const localGame = document.createElement("button");
     const createOffer = document.createElement("button");
     const createAnswer = document.createElement("button");
@@ -123,7 +125,7 @@ export async function chooseMultiplayerSession(): Promise<
         remote,
         status,
     ];
-    document.body.append(...elements);
+    multiplayerControls.append(...elements);
 
     const peer = new RTCPeerConnection({
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],

@@ -13,7 +13,7 @@ body {
     background-color: #181818;
 }
 
-#game {
+#app {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
