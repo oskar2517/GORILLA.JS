@@ -1,12 +1,12 @@
-import imgBananaDown from "./assets/banana_down.png";
-import imgBananaLeft from "./assets/banana_left.png";
-import imgBananaRight from "./assets/banana_right.png";
-import imgBananaUp from "./assets/banana_up.png";
-import imgGorillaArmsDown from "./assets/gorilla.png";
-import imgGorillaLeftArmUp from "./assets/gorilla_left_arm_up.png";
-import imgGorillaRightArmUp from "./assets/gorilla_right_arm_up.png";
-import imgSunHappy from "./assets/sun_happy.png";
-import imgSunShocked from "./assets/sun_shocked.png";
+import imgBananaDown from "../assets/game/banana_down.png";
+import imgBananaLeft from "../assets/game/banana_left.png";
+import imgBananaRight from "../assets/game/banana_right.png";
+import imgBananaUp from "../assets/game/banana_up.png";
+import imgGorillaArmsDown from "../assets/game/gorilla.png";
+import imgGorillaLeftArmUp from "../assets/game/gorilla_left_arm_up.png";
+import imgGorillaRightArmUp from "../assets/game/gorilla_right_arm_up.png";
+import imgSunHappy from "../assets/game/sun_happy.png";
+import imgSunShocked from "../assets/game/sun_shocked.png";
 import { loadImage } from "./runtime";
 import type { Sprites } from "./types";
 
