@@ -4,9 +4,9 @@ import { loadSprites } from "./sprites";
 import { COLOR_BLACK, COLOR_BLUE, COLOR_GORILLA, COLOR_GREY, COLOR_WHITE } from "./constants";
 import { clearScreen, drawCenteredText, drawSparkleBox, drawSprite, drawText } from "./graphics";
 import {
+    createTimeline,
     readInput,
     readSynchronizedKey,
-    rest,
     setRandomSeed,
 } from "./runtime";
 import type {
@@ -65,11 +65,12 @@ async function showTextIntro(
     ).then(() => {
         keyPressed = true;
     });
+    const timeline = createTimeline();
 
     while (!keyPressed) {
         for (let phase = 1; phase <= 5 && !keyPressed; phase++) {
             drawSparkleBox(ctx, phase);
-            await rest(0.03);
+            await timeline.wait(0.03);
         }
     }
 
@@ -185,6 +186,7 @@ async function readGameInputs(
 async function showIntro(ctx: CanvasRenderingContext2D, gameInputs: GameInputs, sprites: Sprites) {
     const x = 278
     const y = 175
+    const timeline = createTimeline();
 
     clearScreen(ctx, COLOR_BLUE);
 
@@ -196,40 +198,40 @@ async function showIntro(ctx: CanvasRenderingContext2D, gameInputs: GameInputs, 
     drawSprite(ctx, sprites.gorillaArmsDown, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaArmsDown, x + 47, y, COLOR_GORILLA);
 
-    await rest(1);
+    await timeline.wait(1);
 
     drawSprite(ctx, sprites.gorillaLeftArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaRightArmUp, x + 47, y, COLOR_GORILLA);
 
     // TODO: play sound
 
-    await rest(0.3);
+    await timeline.wait(0.3);
 
     drawSprite(ctx, sprites.gorillaRightArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaLeftArmUp, x + 47, y, COLOR_GORILLA);
 
-    await rest(4);
+    await timeline.wait(4);
 
     drawSprite(ctx, sprites.gorillaLeftArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaRightArmUp, x + 47, y, COLOR_GORILLA);
 
-    await rest(4);
+    await timeline.wait(4);
 
     drawSprite(ctx, sprites.gorillaRightArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaLeftArmUp, x + 47, y, COLOR_GORILLA);
 
-    await rest(4);
+    await timeline.wait(4);
 
     for (let i = 0; i < 4; i++) {
         drawSprite(ctx, sprites.gorillaLeftArmUp, x - 13, y, COLOR_GORILLA);
         drawSprite(ctx, sprites.gorillaRightArmUp, x + 47, y, COLOR_GORILLA);
 
-        await rest(0.2);
+        await timeline.wait(0.2);
 
         drawSprite(ctx, sprites.gorillaRightArmUp, x - 13, y, COLOR_GORILLA);
         drawSprite(ctx, sprites.gorillaLeftArmUp, x + 47, y, COLOR_GORILLA);
 
-        await rest(0.2);
+        await timeline.wait(0.2);
     }
 }
 
@@ -262,11 +264,12 @@ async function showResults(
     ).then(() => {
         keyPressed = true;
     });
+    const timeline = createTimeline();
 
     while (!keyPressed) {
         for (let phase = 1; phase <= 5 && !keyPressed; phase++) {
             drawSparkleBox(ctx, phase);
-            await rest(0.03);
+            await timeline.wait(0.03);
         }
     }
 

@@ -111,14 +111,42 @@ export function readInput(
     });
 }
 
+function waitUntil(deadline: number): Promise<void> {
+    return new Promise(resolve => {
+        const checkTime = (): void => {
+            const remaining = deadline - performance.now();
+            if (remaining <= 0) {
+                resolve();
+            } else {
+                window.setTimeout(checkTime, remaining);
+            }
+        };
+
+        checkTime();
+    });
+}
+
+export interface Timeline {
+    wait(seconds: number): Promise<void>;
+}
+
 /**
  * NOTE: The original game measures CPU speed and then waits in a
  * busy loop.
  */
-export function rest(seconds: number): Promise<void> {
-    return new Promise(resolve => {
-        setTimeout(resolve, Math.max(seconds * 1000, 16));
-    });
+export function createTimeline(): Timeline {
+    let deadline = performance.now();
+
+    return {
+        wait(seconds: number): Promise<void> {
+            deadline += seconds * 1000;
+            return waitUntil(deadline);
+        },
+    };
+}
+
+export function waitFor(seconds: number): Promise<void> {
+    return waitUntil(performance.now() + seconds * 1000);
 }
 
 export function animateSteps(
@@ -134,27 +162,37 @@ export function animateSteps(
             resolve();
             return;
         }
+        if (totalSteps === 1 || durationMs <= 0) {
+            for (let step = 0; step < totalSteps; step++) {
+                drawStep(step);
+            }
+            resolve();
+            return;
+        }
 
-        let firstFrameTime: number | undefined;
-        let nextStep = 0;
+        const startTime = performance.now();
+        let nextStep = 1;
+        drawStep(0);
 
         const drawFrame = (frameTime: number): void => {
-            firstFrameTime ??= frameTime;
-
-            const elapsed = frameTime - firstFrameTime;
+            const elapsed = frameTime - startTime;
             const targetStep = Math.min(
-                totalSteps,
-                Math.floor(elapsed / durationMs * totalSteps) + 1,
+                totalSteps - 1,
+                Math.floor(elapsed / durationMs * (totalSteps - 1)),
             );
 
-            while (nextStep < targetStep) {
+            while (nextStep <= targetStep) {
                 drawStep(nextStep);
                 nextStep++;
             }
 
-            if (nextStep < totalSteps) {
+            if (elapsed < durationMs) {
                 requestAnimationFrame(drawFrame);
             } else {
+                while (nextStep < totalSteps) {
+                    drawStep(nextStep);
+                    nextStep++;
+                }
                 resolve();
             }
         };

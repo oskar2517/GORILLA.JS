@@ -13,7 +13,7 @@ import {
     COLOR_BLACK,
     COLOR_SUN
 } from "./constants";
-import { qbasicRound, randomNumber, rest } from "./runtime";
+import { createTimeline, qbasicRound, randomNumber } from "./runtime";
 import type { Sprites } from "./types";
 
 export function getPixelAt(
@@ -109,6 +109,8 @@ export async function drawBuilding(
     width: number,
     height: number,
 ): Promise<void> {
+    const timeline = createTimeline();
+
     // QBASIC's LINE ... BF includes both endpoint pixels.
     ctx.fillStyle = COLOR_SKY;
     ctx.fillRect(x - 1, y - 1, width + 3, height + 3);
@@ -127,7 +129,7 @@ export async function drawBuilding(
         }
 
         // NOTE: Simulate processing time
-        await rest(0.01);
+        await timeline.wait(0.01);
     }
 }
 

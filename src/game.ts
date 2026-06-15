@@ -25,10 +25,11 @@ import {
 } from "./graphics";
 import {
     animateSteps,
+    createTimeline,
     qbasicRound,
     randomNumber,
     readSynchronizedKey,
-    rest,
+    waitFor,
 } from "./runtime";
 import type {
     GameInputs,
@@ -128,7 +129,7 @@ async function generateLevel(
         x += width + 2;
 
         // NOTE: Simulate processing time
-        await rest(0.05);
+        await waitFor(0.05);
     }
 
     state.wind = randomNumber(1, 10) - 5;
@@ -234,6 +235,7 @@ async function doVictoryDance(
     playerNumber: number,
 ): Promise<void> {
     const player = state.players[playerNumber];
+    const timeline = createTimeline();
 
     for (let step = 0; step < 4; step++) {
         drawSprite(
@@ -244,7 +246,7 @@ async function doVictoryDance(
             COLOR_GORILLA,
         );
         // TODO: play sound
-        await rest(0.4);
+        await timeline.wait(0.4);
 
         drawSprite(
             ctx,
@@ -254,7 +256,7 @@ async function doVictoryDance(
             COLOR_GORILLA,
         );
         // TODO: play sound
-        await rest(0.4);
+        await timeline.wait(0.4);
     }
 }
 
@@ -288,11 +290,12 @@ async function animateSmallExplosion(
         drawCircle(ctx, x, y, currentRadius, COLOR_EXPLOSION);
     }
 
+    const timeline = createTimeline();
     for (let currentRadius = radius; currentRadius >= 0; currentRadius -= 0.5) {
         drawCircle(ctx, x, y, currentRadius, COLOR_SKY);
 
         // Note: The original game uses 0.005 here. On modern hardware, this is too short.
-        await rest(0.05);
+        await timeline.wait(0.05);
     }
 }
 
@@ -392,7 +395,7 @@ async function plotShot(
     drawSprite(ctx, throwingSprite, player.x, player.y, COLOR_GORILLA);
 
     // TODO: Play throw sound
-    await rest(0.1);
+    await waitFor(0.1);
     drawSprite(
         ctx,
         sprites.gorillaArmsDown,
@@ -429,13 +432,14 @@ async function plotShot(
     let time = 0;
     let x = player.x;
     let y = player.y;
+    const timeline = createTimeline();
 
     while (!impact && onScreen) {
         /**
          * NOTE: The original game rests for 0.02 seconds. However,
          * on modern hardware, this extra delay is too small.
          */
-        await rest(0.05);
+        await timeline.wait(0.05);
 
         if (bananaNeedsErasing) {
             drawBanana(ctx, sprites, oldX, oldY, oldRotation, true);
@@ -447,7 +451,7 @@ async function plotShot(
          * On original hardware this was simply caused by the budy time between
          * undrawing the previous banana and redrawing the new one.
          */
-        await rest(0.004);
+        await timeline.wait(0.004);
 
         x = startXPosition
             + initialXVelocity * time
@@ -615,7 +619,7 @@ export async function startGame(
 
     for (let round = 0; round < gameInputs.rounds; round++) {
         clearScreen(ctx, COLOR_SKY);
-        await rest(0.5);
+        await waitFor(0.5);
 
         const buildings = await generateLevel(ctx, state);
         placeGorillas(ctx, state, sprites, buildings);
@@ -660,7 +664,7 @@ export async function startGame(
             }
         }
 
-        await rest(1);
+        await waitFor(1);
     }
 
     return wins;
