@@ -47,3 +47,14 @@ export interface TurnResult {
     scoringPlayer: number;
     sunHit: boolean;
 }
+
+export interface MultiplayerSession {
+    localPlayer: 0 | 1;
+    isHost: boolean;
+    sendKey(inputId: string, key: string): void;
+    receiveKey(inputId: string): Promise<string>;
+    sendSeed(seed: number): void;
+    receiveSeed(): Promise<number>;
+    synchronize(syncId: string): Promise<void>;
+    close(): void;
+}

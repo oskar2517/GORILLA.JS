@@ -1,5 +1,8 @@
 import { COLOR_BLACK, COLOR_WHITE } from "./constants";
 import { drawText } from "./graphics";
+import type { MultiplayerSession } from "./types";
+
+let randomState: number | undefined;
 
 export async function loadImage(url: string): Promise<HTMLImageElement> {
     const image = new Image();
@@ -16,6 +19,24 @@ export function readBrowserKey(): Promise<string> {
     });
 }
 
+export async function readSynchronizedKey(
+    session: MultiplayerSession | undefined,
+    inputId: string,
+    owner: 0 | 1,
+): Promise<string> {
+    if (!session) {
+        return readBrowserKey();
+    }
+
+    if (session.localPlayer === owner) {
+        const key = await readBrowserKey();
+        session.sendKey(inputId, key);
+        return key;
+    }
+
+    return session.receiveKey(inputId);
+}
+
 export function readInput(
     ctx: CanvasRenderingContext2D,
     column: number,
@@ -23,6 +44,7 @@ export function readInput(
     prompt: string,
     foregroundColor = COLOR_WHITE,
     backgroundColor = COLOR_BLACK,
+    readKey: () => Promise<string> = readBrowserKey,
 ): Promise<string> {
     return new Promise(resolve => {
         let result = "";
@@ -42,7 +64,6 @@ export function readInput(
 
         const finish = (): void => {
             window.clearInterval(cursorTimer);
-            window.removeEventListener("keydown", handleKey);
             drawText(
                 ctx,
                 column,
@@ -54,22 +75,30 @@ export function readInput(
             resolve(result);
         };
 
-        const handleKey = (event: KeyboardEvent): void => {
-            if (event.key.length === 1) {
-                result += event.key;
-            } else if (event.key === "Backspace" && result.length > 0) {
-                event.preventDefault();
+        const handleKey = (key: string): boolean => {
+            if (key.length === 1) {
+                result += key;
+            } else if (key === "Backspace" && result.length > 0) {
                 result = result.substring(0, result.length - 1);
-            } else if (event.key === "Enter") {
-                event.preventDefault();
-                finish();
-                return;
+            } else if (key === "Enter") {
+                return true;
             } else {
-                return;
+                return false;
             }
 
             cursorVisible = true;
             draw();
+            return false;
+        };
+
+        const readKeys = async (): Promise<void> => {
+            while (true) {
+                const key = await readKey();
+                if (handleKey(key)) {
+                    finish();
+                    return;
+                }
+            }
         };
 
         const cursorTimer = window.setInterval(() => {
@@ -77,8 +106,8 @@ export function readInput(
             draw();
         }, 100);
 
-        window.addEventListener("keydown", handleKey);
         draw();
+        void readKeys();
     });
 }
 
@@ -135,7 +164,23 @@ export function animateSteps(
 }
 
 export function randomNumber(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    let randomValue: number;
+
+    if (randomState === undefined) {
+        randomValue = Math.random();
+    } else {
+        randomState = (randomState + 0x6D2B79F5) >>> 0;
+        let value = randomState;
+        value = Math.imul(value ^ value >>> 15, value | 1);
+        value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+        randomValue = ((value ^ value >>> 14) >>> 0) / 4294967296;
+    }
+
+    return Math.floor(randomValue * (max - min + 1)) + min;
+}
+
+export function setRandomSeed(seed: number | undefined): void {
+    randomState = seed === undefined ? undefined : seed >>> 0;
 }
 
 /**
