@@ -5,6 +5,7 @@
     import Comment from "../lib/Comment.svelte";
     import TextArea from "../lib/TextArea.svelte";
     import { gameLaunch } from "../lib/game-session";
+    import View from "../lib/View.svelte";
     import {
         createHostConnection,
         type HostConnection,
@@ -57,36 +58,38 @@
     }
 </script>
 
-<Comment text="1. Opponent clicks 'Join online game'."></Comment>
+<View>
+    <Comment text="1. Opponent clicks 'Join online game'."></Comment>
 
-<Comment text=""></Comment>
+    <Comment text=""></Comment>
 
-<Comment
-    text="2. Opponent pastes the following code into 'Offer' and clicks 'Create answer'."
-></Comment>
+    <Comment
+        text="2. Opponent pastes the following code into 'Offer' and clicks 'Create answer'."
+    ></Comment>
 
-<TextArea
-    placeholder="Offer"
-    readonly={true}
-    disabled={creatingOffer || !offer || connected}
-    bind:value={offer}
-></TextArea>
+    <TextArea
+        placeholder="Offer"
+        readonly={true}
+        disabled={creatingOffer || !offer || connected}
+        bind:value={offer}
+    ></TextArea>
 
-<Comment text="3. Paste opponent's answer below and click 'Accept answer'."
-></Comment>
+    <Comment text="3. Paste opponent's answer below and click 'Accept answer'."
+    ></Comment>
 
-<TextArea
-    placeholder="Answer"
-    disabled={creatingOffer || !offer || acceptingAnswer || connected}
-    bind:value={answer}
-></TextArea>
+    <TextArea
+        placeholder="Answer"
+        disabled={creatingOffer || !offer || acceptingAnswer || connected}
+        bind:value={answer}
+    ></TextArea>
 
-<Button
-    value={acceptingAnswer ? "Connecting..." : "Accept answer"}
-    disabled={!answer.trim() || creatingOffer || acceptingAnswer || connected}
-    onclick={acceptAnswer}
-></Button>
+    <Button
+        value={acceptingAnswer ? "Connecting..." : "Accept answer"}
+        disabled={!answer.trim() || creatingOffer || acceptingAnswer || connected}
+        onclick={acceptAnswer}
+    ></Button>
 
-{#if error}
-    <Comment text={error}></Comment>
-{/if}
+    {#if error}
+        <Comment text={error}></Comment>
+    {/if}
+</View>

@@ -5,6 +5,7 @@
     import Comment from "../lib/Comment.svelte";
     import TextArea from "../lib/TextArea.svelte";
     import { gameLaunch } from "../lib/game-session";
+    import View from "../lib/View.svelte";
     import {
         createJoinConnection,
         type JoinConnection,
@@ -51,30 +52,32 @@
     }
 </script>
 
-<Comment text="1. Paste offer from host and click 'Create answer'."></Comment>
+<View>
+    <Comment text="1. Paste offer from host and click 'Create answer'."></Comment>
 
-<TextArea
-    placeholder="Offer"
-    disabled={creatingAnswer || answerCreated || connected}
-    bind:value={offer}
-></TextArea>
+    <TextArea
+        placeholder="Offer"
+        disabled={creatingAnswer || answerCreated || connected}
+        bind:value={offer}
+    ></TextArea>
 
-<Button
-    value={creatingAnswer ? "Creating answer..." : "Create answer"}
-    disabled={!offer.trim() || creatingAnswer || answerCreated || connected}
-    onclick={createAnswer}
-></Button>
+    <Button
+        value={creatingAnswer ? "Creating answer..." : "Create answer"}
+        disabled={!offer.trim() || creatingAnswer || answerCreated || connected}
+        onclick={createAnswer}
+    ></Button>
 
-<Comment text="2. Host pastes answer into 'Answer' and clicks 'Accept answer'."
-></Comment>
+    <Comment text="2. Host pastes answer into 'Answer' and clicks 'Accept answer'."
+    ></Comment>
 
-<TextArea
-    placeholder="Answer"
-    readonly={true}
-    disabled={!answerCreated || !answer || connected}
-    bind:value={answer}
-></TextArea>
+    <TextArea
+        placeholder="Answer"
+        readonly={true}
+        disabled={!answerCreated || !answer || connected}
+        bind:value={answer}
+    ></TextArea>
 
-{#if error}
-    <Comment text={error}></Comment>
-{/if}
+    {#if error}
+        <Comment text={error}></Comment>
+    {/if}
+</View>

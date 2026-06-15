@@ -5,7 +5,7 @@
     } from "@dvcol/svelte-simple-router/models";
     import Home from "./routes/Home.svelte";
     import Host from "./routes/Host.svelte";
-    import { RouterView, RouteView } from "@dvcol/svelte-simple-router";
+    import { RouterView } from "@dvcol/svelte-simple-router";
     import Join from "./routes/Join.svelte";
     import Game from "./routes/Game.svelte";
 
@@ -46,39 +46,4 @@
     } as const;
 </script>
 
-<div class="view">
-    <h1 class="title">GORILLA.JS</h1>
-
-    <div class="content">
-        <RouterView {options} />
-    </div>
-</div>
-
-<style lang="scss">
-    .view {
-        flex: 1;
-        border: solid 5px var(--color-grey);
-        margin: 3% 5%;
-        position: relative;
-        display: flex;
-    }
-
-    .content {
-        overflow: auto;
-        flex: 1;
-        min-width: 0;
-        min-height: 0;
-        padding: 40px;
-    }
-
-    .title {
-        position: absolute;
-        left: 50%;
-        top: 0;
-        transform: translate(-50%, -50%);
-        color: var(--color-blue);
-        background-color: var(--color-grey);
-        padding: 5px 20px;
-        font-size: 28px;
-    }
-</style>
+<RouterView {options} />
