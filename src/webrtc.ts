@@ -98,7 +98,7 @@ function createSession(
 export async function chooseMultiplayerSession(): Promise<
     MultiplayerSession | undefined
 > {
-    const multiplayerControls: HTMLDivElement = document.querySelector("#app")!!;
+    const multiplayerControls: HTMLDivElement = document.querySelector("#multiplayerControls")!!;
 
     const localGame = document.createElement("button");
     const createOffer = document.createElement("button");
