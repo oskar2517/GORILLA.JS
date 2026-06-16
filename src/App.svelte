@@ -13,7 +13,7 @@
         Home: "home",
         Host: "host",
         Join: "join",
-        Game: "game"
+        Game: "game",
     } as const;
 
     type RouteNames = (typeof RouteName)[keyof typeof RouteName];
@@ -32,13 +32,13 @@
         {
             name: RouteName.Join,
             path: "/join",
-            component: Join
+            component: Join,
         },
         {
             name: RouteName.Game,
             path: "/game",
-            component: Game
-        }
+            component: Game,
+        },
     ] as const;
 
     const options: RouterOptions<RouteNames> = {

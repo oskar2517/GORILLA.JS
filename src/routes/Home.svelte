@@ -9,7 +9,7 @@
     const { push } = useNavigate();
 
     function playLocally(): void {
-        gameLaunch.set({ mode: "local" });
+        $gameLaunch = { mode: "local" };
         push({ path: "/game" });
     }
 </script>
@@ -27,9 +27,11 @@
 
     <Button value="Play locally" onclick={playLocally}></Button>
 
-    <Button value="Host online game" onclick={() => push({ path: "/host" })}></Button>
+    <Button value="Host online game" onclick={() => push({ path: "/host" })}
+    ></Button>
 
-    <Button value="Join online game" onclick={() => push({ path: "/join" })}></Button>
+    <Button value="Join online game" onclick={() => push({ path: "/join" })}
+    ></Button>
 </View>
 
 <style lang="scss">

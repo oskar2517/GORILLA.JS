@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { get } from "svelte/store";
     import { onDestroy, onMount } from "svelte";
     import { useNavigate } from "@dvcol/svelte-simple-router";
     import { gameLaunch } from "../lib/game-session";
@@ -13,14 +12,14 @@
     let session: MultiplayerSession | undefined;
 
     onMount(() => {
-        const launch = get(gameLaunch);
+        const launch = $gameLaunch;
         if (!launch) {
             push({ path: "/" });
             return;
         }
 
         session = launch.mode === "online" ? launch.session : undefined;
-        void runGame(canvas, session).catch((cause) => {
+        runGame(canvas, session).catch((cause) => {
             error = String(cause);
         });
     });
@@ -64,10 +63,7 @@
         box-sizing: content-box;
         width: max(
             0px,
-            min(
-                calc(100cqw - 110px),
-                calc(182.857142857cqh - 128px)
-            )
+            min(calc(100cqw - 110px), calc(182.857142857cqh - 128px))
         );
         height: auto;
         padding: 10px 20px;

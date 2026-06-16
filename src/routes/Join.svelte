@@ -35,7 +35,7 @@
             connection = createJoinConnection(roomCode);
             const session = await connection.session;
             connected = true;
-            gameLaunch.set({ mode: "online", session });
+            $gameLaunch = { mode: "online", session };
             push({ path: "/game" });
         } catch (cause) {
             error = String(cause);
