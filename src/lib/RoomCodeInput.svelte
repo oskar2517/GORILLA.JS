@@ -12,7 +12,7 @@
     }: Props = $props();
 </script>
 
-<div class="room-code-wrapper">
+<div class="room-code-wrapper" class:disabled>
     <input
         class="room-code"
         type="text"
