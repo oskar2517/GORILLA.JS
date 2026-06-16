@@ -9,10 +9,23 @@ const STUN_ICE_SERVERS: RTCIceServer[] = [
     { urls: "stun:stun.cloudflare.com:3478" },
 ];
 
-type Message =
-    | { type: "key"; inputId: string; key: string }
-    | { type: "seed"; seed: number }
-    | { type: "ready"; syncId: string };
+interface KeyMessage {
+    type: "key";
+    inputId: string;
+    key: string;
+}
+
+interface SeedMessage {
+    type: "seed";
+    seed: number;
+}
+
+interface ReadyMessage {
+    type: "ready";
+    syncId: string;
+}
+
+type Message = KeyMessage | SeedMessage | ReadyMessage;
 
 interface P2PCFPeer {
     id: string;
@@ -120,14 +133,14 @@ function createSession(
             const message = await receive(
                 value => value.type === "key" && value.inputId === inputId,
             );
-            return (message as Extract<Message, { type: "key" }>).key;
+            return (message as KeyMessage).key;
         },
         sendSeed(seed): void {
             send({ type: "seed", seed });
         },
         async receiveSeed(): Promise<number> {
             const message = await receive(value => value.type === "seed");
-            return (message as Extract<Message, { type: "seed" }>).seed;
+            return (message as SeedMessage).seed;
         },
         async synchronize(syncId): Promise<void> {
             send({ type: "ready", syncId });
