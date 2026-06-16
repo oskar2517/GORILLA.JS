@@ -3,7 +3,6 @@ import type { MultiplayerSession } from "./types";
 
 const SIGNALING_WORKER_URL = "https://signaling.gorillas.zone";
 const ROOM_PREFIX = "gorillas-";
-const CONNECTION_TIMEOUT_MS = 30_000;
 const STUN_ICE_SERVERS: RTCIceServer[] = [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
@@ -156,7 +155,6 @@ function waitForSession(
             }
 
             settled = true;
-            clearTimeout(timeout);
             return true;
         };
 
@@ -171,12 +169,6 @@ function waitForSession(
                 reject(cause);
             }
         };
-
-        const timeout = setTimeout(() => {
-            finishReject(
-                new Error("Timed out while waiting for the WebRTC connection"),
-            );
-        }, CONNECTION_TIMEOUT_MS);
 
         client.on("peerconnect", peer => {
             if (settled || !peer.client_id.startsWith(`${remoteRole}-`)) {
