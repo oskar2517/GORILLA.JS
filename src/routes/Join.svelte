@@ -23,6 +23,12 @@
         }
     });
 
+    function handleWindowEnter(e: KeyboardEvent) {
+        if (e.key === "Enter") {
+            joinGame();
+        }
+    }
+
     async function joinGame(): Promise<void> {
         if (!roomCodeIsValid || connecting || connected) {
             return;
@@ -45,6 +51,8 @@
         }
     }
 </script>
+
+<svelte:window onkeydown={handleWindowEnter} />
 
 <View>
     <Comment text="Enter the host's room code."></Comment>
