@@ -36,7 +36,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build
-        run: npm run build"
+        run: npm run build
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
