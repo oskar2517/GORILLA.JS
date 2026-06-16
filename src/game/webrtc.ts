@@ -1,110 +1,90 @@
+import P2PCF from "p2pcf";
 import type { MultiplayerSession } from "./types";
+
+const SIGNALING_WORKER_URL = "https://gorillas.privat-1c1.workers.dev";
+const ROOM_PREFIX = "gorillas-";
+const CONNECTION_TIMEOUT_MS = 30_000;
+const STUN_ICE_SERVERS: RTCIceServer[] = [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun.cloudflare.com:3478" },
+];
 
 type Message =
     | { type: "key"; inputId: string; key: string }
     | { type: "seed"; seed: number }
     | { type: "ready"; syncId: string };
 
-export interface HostConnection {
-    offer: string;
-    acceptAnswer(answer: string): Promise<MultiplayerSession>;
-    close(): void;
+interface P2PCFPeer {
+    id: string;
+    client_id: string;
+    connected: boolean;
 }
 
-export interface JoinConnection {
-    answer: string;
+interface P2PCFClient {
+    on(event: "peerconnect", listener: (peer: P2PCFPeer) => void): void;
+    on(
+        event: "msg",
+        listener: (peer: P2PCFPeer, data: ArrayBuffer) => void,
+    ): void;
+    on(event: "peerclose", listener: (peer: P2PCFPeer) => void): void;
+    start(): Promise<void>;
+    send(peer: P2PCFPeer, message: Uint8Array): void;
+    destroy(): void;
+}
+
+export interface HostConnection {
+    roomCode: string;
     session: Promise<MultiplayerSession>;
     close(): void;
 }
 
-function encodeDescription(description: RTCSessionDescription | null): string {
-    return btoa(JSON.stringify(description));
+export interface JoinConnection {
+    session: Promise<MultiplayerSession>;
+    close(): void;
 }
 
-function decodeDescription(value: string): RTCSessionDescriptionInit {
-    return JSON.parse(atob(value.trim())) as RTCSessionDescriptionInit;
+function createClientId(role: "host" | "join"): string {
+    return `${role}-${crypto.randomUUID()}`;
 }
 
-function waitForIce(peer: RTCPeerConnection): Promise<void> {
-    if (peer.iceGatheringState === "complete") {
-        return Promise.resolve();
-    }
-
-    return new Promise(resolve => {
-        const handleCandidate = (event: RTCPeerConnectionIceEvent): void => {
-            if (!event.candidate) {
-                peer.removeEventListener("icecandidate", handleCandidate);
-                resolve();
-            }
-        };
-
-        peer.addEventListener("icecandidate", handleCandidate);
-    });
+function createRoomCode(): string {
+    return String(Math.floor(Math.random() * 100000)).padStart(5, "0");
 }
 
-async function setLocalDescription(
-    peer: RTCPeerConnection,
-    description: RTCSessionDescriptionInit,
-): Promise<string> {
-    const iceComplete = waitForIce(peer);
-    await peer.setLocalDescription(description);
-    await iceComplete;
-    return encodeDescription(peer.localDescription);
+function createRoomId(roomCode: string): string {
+    return `${ROOM_PREFIX}${roomCode}`;
 }
 
-function waitForChannel(channel: RTCDataChannel): Promise<void> {
-    if (channel.readyState === "open") {
-        return Promise.resolve();
-    }
-
-    return new Promise((resolve, reject) => {
-        const handleOpen = (): void => {
-            cleanup();
-            resolve();
-        };
-        const handleClose = (): void => {
-            cleanup();
-            reject(new Error("The WebRTC data channel closed"));
-        };
-        const cleanup = (): void => {
-            channel.removeEventListener("open", handleOpen);
-            channel.removeEventListener("close", handleClose);
-        };
-
-        channel.addEventListener("open", handleOpen);
-        channel.addEventListener("close", handleClose);
-    });
-}
-
-function receiveDataChannel(peer: RTCPeerConnection): Promise<RTCDataChannel> {
-    return new Promise(resolve => {
-        peer.addEventListener(
-            "datachannel",
-            event => resolve(event.channel),
-            { once: true },
-        );
-    });
-}
-
-function createPeer(): RTCPeerConnection {
-    return new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    });
+function createP2PCFClient(role: "host" | "join", roomCode: string): P2PCFClient {
+    return new P2PCF(createClientId(role), createRoomId(roomCode), {
+        workerUrl: SIGNALING_WORKER_URL,
+        stunIceServers: STUN_ICE_SERVERS,
+        turnIceServers: STUN_ICE_SERVERS,
+        idlePollingAfterMs: 10 * 60 * 1000,
+        slowPollingRateMs: 1000,
+    }) as P2PCFClient;
 }
 
 function createSession(
-    peer: RTCPeerConnection,
-    channel: RTCDataChannel,
+    client: P2PCFClient,
+    peer: P2PCFPeer,
     localPlayer: 0 | 1,
 ): MultiplayerSession {
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
     const inbox: Message[] = [];
     const waiters: Array<{
         matches: (message: Message) => boolean;
         resolve: (message: Message) => void;
     }> = [];
 
-    channel.addEventListener("message", event => {
-        const message = JSON.parse(String(event.data)) as Message;
+    client.on("msg", (sender, data) => {
+        if (sender.id !== peer.id) {
+            return;
+        }
+
+        const message = JSON.parse(decoder.decode(data)) as Message;
         const index = waiters.findIndex(waiter => waiter.matches(message));
 
         if (index >= 0) {
@@ -115,7 +95,7 @@ function createSession(
     });
 
     const send = (message: Message): void => {
-        channel.send(JSON.stringify(message));
+        client.send(peer, encoder.encode(JSON.stringify(message)));
     };
 
     const receive = (
@@ -157,57 +137,102 @@ function createSession(
             );
         },
         close(): void {
-            channel.close();
-            peer.close();
+            client.destroy();
         },
     };
 }
 
-export async function createHostConnection(): Promise<HostConnection> {
-    const peer = createPeer();
-    const channel = peer.createDataChannel("gorillas");
-    const offer = await setLocalDescription(peer, await peer.createOffer());
-    let answerAccepted = false;
+function waitForSession(
+    client: P2PCFClient,
+    localPlayer: 0 | 1,
+    remoteRole: "host" | "join",
+): Promise<MultiplayerSession> {
+    return new Promise((resolve, reject) => {
+        let settled = false;
 
-    return {
-        offer,
-        async acceptAnswer(answer: string): Promise<MultiplayerSession> {
-            if (answerAccepted) {
-                throw new Error("The answer has already been accepted");
+        const finish = (): boolean => {
+            if (settled) {
+                return false;
             }
-            answerAccepted = true;
 
-            await peer.setRemoteDescription(decodeDescription(answer));
-            await waitForChannel(channel);
-            return createSession(peer, channel, 0);
-        },
-        close(): void {
-            channel.close();
-            peer.close();
-        },
-    };
+            settled = true;
+            clearTimeout(timeout);
+            return true;
+        };
+
+        const finishResolve = (session: MultiplayerSession): void => {
+            if (finish()) {
+                resolve(session);
+            }
+        };
+
+        const finishReject = (cause: unknown): void => {
+            if (finish()) {
+                reject(cause);
+            }
+        };
+
+        const timeout = setTimeout(() => {
+            finishReject(
+                new Error("Timed out while waiting for the WebRTC connection"),
+            );
+        }, CONNECTION_TIMEOUT_MS);
+
+        client.on("peerconnect", peer => {
+            if (settled || !peer.client_id.startsWith(`${remoteRole}-`)) {
+                return;
+            }
+
+            finishResolve(createSession(client, peer, localPlayer));
+        });
+
+        client.on("peerclose", peer => {
+            if (settled || !peer.client_id.startsWith(`${remoteRole}-`)) {
+                return;
+            }
+
+            finishReject(
+                new Error("The WebRTC peer closed before connecting"),
+            );
+        });
+
+        client.start().catch(cause => {
+            finishReject(
+                cause instanceof Error ? cause : new Error(String(cause)),
+            );
+        });
+    });
 }
 
-export async function createJoinConnection(
-    offer: string,
-): Promise<JoinConnection> {
-    const peer = createPeer();
-    const channelReceived = receiveDataChannel(peer);
-
-    await peer.setRemoteDescription(decodeDescription(offer));
-    const answer = await setLocalDescription(peer, await peer.createAnswer());
-
-    const session = (async (): Promise<MultiplayerSession> => {
-        const channel = await channelReceived;
-        await waitForChannel(channel);
-        return createSession(peer, channel, 1);
-    })();
+export function createHostConnection(): HostConnection {
+    const roomCode = createRoomCode();
+    const client = createP2PCFClient("host", roomCode);
+    const session = waitForSession(client, 0, "join").catch(cause => {
+        client.destroy();
+        throw cause;
+    });
 
     return {
-        answer,
+        roomCode,
         session,
         close(): void {
-            peer.close();
+            client.destroy();
+        },
+    };
+}
+
+export function createJoinConnection(roomCode: string): JoinConnection {
+    const normalizedRoomCode = roomCode.trim();
+    const client = createP2PCFClient("join", normalizedRoomCode);
+    const session = waitForSession(client, 1, "host").catch(cause => {
+        client.destroy();
+        throw cause;
+    });
+
+    return {
+        session,
+        close(): void {
+            client.destroy();
         },
     };
 }
