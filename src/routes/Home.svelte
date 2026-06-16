@@ -5,6 +5,7 @@
     import { useNavigate } from "@dvcol/svelte-simple-router";
     import { gameLaunch } from "../lib/game-session";
     import View from "../lib/View.svelte";
+    import GitHubLink from "../lib/GitHubLink.svelte";
 
     const { push } = useNavigate();
 
@@ -32,6 +33,8 @@
 
     <Button value="Join online game" onclick={() => push({ path: "/join" })}
     ></Button>
+
+    <GitHubLink></GitHubLink>
 </View>
 
 <style lang="scss">
