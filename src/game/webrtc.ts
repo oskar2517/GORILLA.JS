@@ -1,7 +1,7 @@
 import P2PCF from "p2pcf";
 import type { MultiplayerSession } from "./types";
 
-const SIGNALING_WORKER_URL = "https://gorillas.privat-1c1.workers.dev";
+const SIGNALING_WORKER_URL = "https://signaling.gorillas.zone";
 const ROOM_PREFIX = "gorillas-";
 const CONNECTION_TIMEOUT_MS = 30_000;
 const STUN_ICE_SERVERS: RTCIceServer[] = [
