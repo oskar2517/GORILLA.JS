@@ -14,6 +14,7 @@ import type {
     MultiplayerSession,
     Sprites,
 } from "./types";
+import { playTone } from "./audio";
 
 async function readSharedInput(
     ctx: CanvasRenderingContext2D,
@@ -54,6 +55,8 @@ async function showTextIntro(
     drawCenteredText(ctx, 24, "Press any key to continue", COLOR_GREY, COLOR_BLACK);
 
     await session?.synchronize("text-intro");
+
+    await playTone("MBT160O1L8CDEDCDL4ECC");
 
     let keyPressed = false;
     const keyPromise = readSynchronizedKey(
@@ -201,35 +204,45 @@ async function showIntro(ctx: CanvasRenderingContext2D, gameInputs: GameInputs, 
     drawSprite(ctx, sprites.gorillaLeftArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaRightArmUp, x + 47, y, COLOR_GORILLA);
 
-    // TODO: play sound
+    await playTone("t120o1l16b9n0baan0bn0bn0baaan0b9n0baan0b");
 
     await timeline.wait(0.3);
 
     drawSprite(ctx, sprites.gorillaRightArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaLeftArmUp, x + 47, y, COLOR_GORILLA);
 
-    await timeline.wait(4);
+    await playTone("o2l16e-9n0e-d-d-n0e-n0e-n0e-d-d-d-n0e-9n0e-d-d-n0e-");
+
+    await timeline.wait(0.3);
 
     drawSprite(ctx, sprites.gorillaLeftArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaRightArmUp, x + 47, y, COLOR_GORILLA);
 
-    await timeline.wait(4);
+    await playTone("o2l16g-9n0g-een0g-n0g-n0g-eeen0g-9n0g-een0g-");
+
+    await timeline.wait(0.3);
 
     drawSprite(ctx, sprites.gorillaRightArmUp, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaLeftArmUp, x + 47, y, COLOR_GORILLA);
 
-    await timeline.wait(4);
+    await playTone("o2l16b9n0baan0g-n0g-n0g-eeen0o1b9n0baan0b");
+
+    await timeline.wait(0.3);
 
     for (let i = 0; i < 4; i++) {
         drawSprite(ctx, sprites.gorillaLeftArmUp, x - 13, y, COLOR_GORILLA);
         drawSprite(ctx, sprites.gorillaRightArmUp, x + 47, y, COLOR_GORILLA);
 
-        await timeline.wait(0.2);
+        await playTone("T160O0L32EFGEFDC");
+
+        await timeline.wait(0.1);
 
         drawSprite(ctx, sprites.gorillaRightArmUp, x - 13, y, COLOR_GORILLA);
         drawSprite(ctx, sprites.gorillaLeftArmUp, x + 47, y, COLOR_GORILLA);
 
-        await timeline.wait(0.2);
+        await playTone("T160O0L32EFGEFDC");
+
+        await timeline.wait(0.1);
     }
 }
 

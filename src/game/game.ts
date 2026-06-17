@@ -1,3 +1,4 @@
+import { playTone } from "./audio";
 import {
     COLOR_BANANA,
     COLOR_EXPLOSION,
@@ -245,8 +246,9 @@ async function doVictoryDance(
             player.y,
             COLOR_GORILLA,
         );
-        // TODO: play sound
-        await timeline.wait(0.4);
+        
+        await playTone("MFO0L32EFGEFDC");
+        await timeline.wait(0.2);
 
         drawSprite(
             ctx,
@@ -255,8 +257,8 @@ async function doVictoryDance(
             player.y,
             COLOR_GORILLA,
         );
-        // TODO: play sound
-        await timeline.wait(0.4);
+        await playTone("MFO0L32EFGEFDC");
+        await timeline.wait(0.2);
     }
 }
 
@@ -282,7 +284,7 @@ async function animateSmallExplosion(
     x: number,
     y: number,
 ): Promise<void> {
-    // TODO: play explosion sound
+    await playTone("MBO0L32EFGEFDC");
 
     const radius = SCREEN_HEIGHT / 50;
 
@@ -311,7 +313,7 @@ async function explodeGorilla(
     const xAdjust = 5;
     const yAdjust = 12;
 
-    // TODO: Play gorilla explosion sound
+    await playTone("MBO0L16EFGEFDC");
 
     await animateSteps(8 * xScale, 0.1, step => {
         const radius = step + 1;
@@ -394,7 +396,7 @@ async function plotShot(
         : sprites.gorillaRightArmUp;
     drawSprite(ctx, throwingSprite, player.x, player.y, COLOR_GORILLA);
 
-    // TODO: Play throw sound
+    await playTone("MBo0L32A-L64CL16BL64A+");
     await waitFor(0.1);
     drawSprite(
         ctx,
