@@ -369,7 +369,7 @@ async function playToneNote(
     dots: number,
 ): Promise<void> {
     const duration = noteDuration(state, length, dots);
-    await playNote(duration.sound, noteFrequency(note), 1);
+    await playNote(duration.sound, noteFrequency(note), 0.1);
 
     if (duration.silence > 0) {
         await wait(duration.silence);
