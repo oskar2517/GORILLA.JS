@@ -24,12 +24,12 @@ import {
     drawWind,
     getPixelAt,
 } from "./graphics";
+import { readSynchronizedKey } from "./keyboard";
 import {
     animateSteps,
     createTimeline,
     qbasicRound,
     randomNumber,
-    readSynchronizedKey,
     waitFor,
 } from "./runtime";
 import type {

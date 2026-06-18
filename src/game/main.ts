@@ -5,7 +5,6 @@ import { clearScreen, drawCenteredText, drawSparkleBox, drawSprite, drawText } f
 import {
     createTimeline,
     readInput,
-    readSynchronizedKey,
     setRandomSeed,
 } from "./runtime";
 import type {
@@ -15,6 +14,7 @@ import type {
     Sprites,
 } from "./types";
 import { playTone } from "./audio";
+import { readSynchronizedKey } from "./keyboard";
 
 async function readSharedInput(
     ctx: CanvasRenderingContext2D,
