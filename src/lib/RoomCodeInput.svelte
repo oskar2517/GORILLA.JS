@@ -44,4 +44,19 @@
         resize: none;
         outline: none;
     }
+
+    @media (max-width: 700px) {
+        .room-code-wrapper {
+            width: min(100%, 320px);
+            margin: 28px auto;
+            padding: 8px 12px;
+        }
+
+        .room-code {
+            width: 100%;
+            font-size: 20px;
+            border-width: 3px;
+            padding: 8px 10px;
+        }
+    }
 </style>

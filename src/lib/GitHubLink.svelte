@@ -34,4 +34,15 @@
     .icon {
         height: 40px;
     }
+
+    @media (max-width: 700px) {
+        .github-link {
+            column-gap: 12px;
+            font-size: 20px;
+        }
+
+        .icon {
+            height: 28px;
+        }
+    }
 </style>

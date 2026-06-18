@@ -24,12 +24,12 @@ import {
     drawWind,
     getPixelAt,
 } from "./graphics";
+import { readSynchronizedKey } from "./keyboard";
 import {
     animateSteps,
     createTimeline,
     qbasicRound,
     randomNumber,
-    readSynchronizedKey,
     waitFor,
 } from "./runtime";
 import type {
@@ -41,6 +41,7 @@ import type {
     Sprites,
     TurnResult,
 } from "./types";
+import { createKeyReader } from "./keyboard";
 
 function createGameState(gravity: number): GameState {
     return {
@@ -187,32 +188,41 @@ async function readShotNumber(
     let result = "";
 
     await session?.synchronize(inputId);
+    const keyReader = !session || session.localPlayer === activePlayer
+        ? createKeyReader("number")
+        : undefined;
 
-    while (true) {
-        drawText(ctx, column, row, `${result}_    `);
-        const key = await readSynchronizedKey(
-            session,
-            inputId,
-            activePlayer,
-        );
+    try {
+        while (true) {
+            drawText(ctx, column, row, `${result}_    `);
+            const key = await readSynchronizedKey(
+                session,
+                inputId,
+                activePlayer,
+                "number",
+                keyReader,
+            );
 
-        if (/^[0-9]$/.test(key)) {
-            result += key;
-        } else if (key === "." && !result.includes(".")) {
-            result += key;
-        } else if (key === "Backspace" && result.length > 0) {
-            result = result.substring(0, result.length - 1);
-        } else if (key === "Enter") {
-            const value = Number.parseFloat(result);
-            if (result === "" || value <= 360) {
-                break;
+            if (/^[0-9]$/.test(key)) {
+                result += key;
+            } else if (key === "." && !result.includes(".")) {
+                result += key;
+            } else if (key === "Backspace" && result.length > 0) {
+                result = result.substring(0, result.length - 1);
+            } else if (key === "Enter") {
+                const value = Number.parseFloat(result);
+                if (result === "" || value <= 360) {
+                    break;
+                }
+                result = "";
             }
-            result = "";
-        }
 
-        /**
-         * NOTE: Currently missing beep sound for unsupported keys.
-         */
+            /**
+             * NOTE: Currently missing beep sound for unsupported keys.
+             */
+        }
+    } finally {
+        keyReader?.destroy();
     }
 
     drawText(ctx, column, row, `${result} `);

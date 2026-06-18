@@ -16,15 +16,30 @@
     font-weight: normal;
 }
 
+html {
+    height: 100%;
+}
+
 body {
     background-color: var(--color-blue);
     color: var(--color-grey);
     font-family: "IBM EGA 8x14", sans-serif;
     text-rendering: geometricPrecision;
     font-size: 28px;
+    overflow: hidden;
+    height: 100%;
 }
 
 #app {
     display: flex;
     height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    width: 100%;
+}
+
+@media (max-width: 700px) {
+    body {
+        font-size: 20px;
+    }
 }

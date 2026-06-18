@@ -46,4 +46,21 @@
         font-size: 28px;
         z-index: 1000;
     }
+
+    @media (max-width: 700px) {
+        .view {
+            border-width: 3px;
+            margin: 20px 12px 12px;
+        }
+
+        .content {
+            padding: 28px 12px 16px;
+        }
+
+        .title {
+            padding: 3px 10px;
+            font-size: 20px;
+            white-space: nowrap;
+        }
+    }
 </style>

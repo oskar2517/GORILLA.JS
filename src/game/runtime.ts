@@ -1,6 +1,6 @@
 import { COLOR_BLACK, COLOR_WHITE } from "./constants";
 import { drawText } from "./graphics";
-import type { MultiplayerSession } from "./types";
+import { readBrowserKey } from "./keyboard";
 
 let randomState: number | undefined;
 
@@ -9,32 +9,6 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
     image.src = url;
     await image.decode();
     return image;
-}
-
-export function readBrowserKey(): Promise<string> {
-    return new Promise(resolve => {
-        window.addEventListener("keydown", event => {
-            resolve(event.key);
-        }, { once: true });
-    });
-}
-
-export async function readSynchronizedKey(
-    session: MultiplayerSession | undefined,
-    inputId: string,
-    owner: 0 | 1,
-): Promise<string> {
-    if (!session) {
-        return readBrowserKey();
-    }
-
-    if (session.localPlayer === owner) {
-        const key = await readBrowserKey();
-        session.sendKey(inputId, key);
-        return key;
-    }
-
-    return session.receiveKey(inputId);
 }
 
 export function readInput(

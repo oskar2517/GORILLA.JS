@@ -5,7 +5,6 @@ import { clearScreen, drawCenteredText, drawSparkleBox, drawSprite, drawText } f
 import {
     createTimeline,
     readInput,
-    readSynchronizedKey,
     setRandomSeed,
 } from "./runtime";
 import type {
@@ -15,6 +14,7 @@ import type {
     Sprites,
 } from "./types";
 import { playTone } from "./audio";
+import { createKeyReader, readSynchronizedKey } from "./keyboard";
 
 async function readSharedInput(
     ctx: CanvasRenderingContext2D,
@@ -25,16 +25,23 @@ async function readSharedInput(
     prompt: string,
 ): Promise<string> {
     await session?.synchronize(inputId);
+    const keyReader = !session || session.localPlayer === 0
+        ? createKeyReader("full")
+        : undefined;
 
-    return readInput(
-        ctx,
-        column,
-        row,
-        prompt,
-        COLOR_GREY,
-        COLOR_BLACK,
-        () => readSynchronizedKey(session, inputId, 0),
-    );
+    try {
+        return await readInput(
+            ctx,
+            column,
+            row,
+            prompt,
+            COLOR_GREY,
+            COLOR_BLACK,
+            () => readSynchronizedKey(session, inputId, 0, "full", keyReader),
+        );
+    } finally {
+        keyReader?.destroy();
+    }
 }
 
 async function showTextIntro(
@@ -63,6 +70,7 @@ async function showTextIntro(
         session,
         "text-intro",
         0,
+        "continue"
     ).then(() => {
         keyPressed = true;
     });
@@ -169,7 +177,7 @@ async function readGameInputs(
     drawText(ctx, 35, 21, "Your Choice?", COLOR_GREY, COLOR_BLACK);
 
     await session?.synchronize("config-action");
-    const key = await readSynchronizedKey(session, "config-action", 0);
+    const key = await readSynchronizedKey(session, "config-action", 0, "full");
     let nextAction: GameInputAction = "game";
     if (key.toLowerCase() === "v") {
         nextAction = "intro"
@@ -272,6 +280,7 @@ async function showResults(
         session,
         "game-results",
         0,
+        "continue"
     ).then(() => {
         keyPressed = true;
     });
