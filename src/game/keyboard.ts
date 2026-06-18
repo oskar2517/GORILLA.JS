@@ -3,6 +3,11 @@ import type { OnscreenKeyboardLayout } from "../lib/OnscreenKeyboard.svelte";
 import OnscreenKeyboard from "../lib/OnscreenKeyboard.svelte";
 import type { MultiplayerSession } from "./types";
 
+interface KeyReader {
+    readKey(): Promise<string>;
+    destroy(): void;
+}
+
 export function shouldUseOnscreenKeyboard(): boolean {
     return window.matchMedia("(pointer: coarse)").matches;
 }
@@ -37,23 +42,38 @@ export function readOnscreenKey(onscreenLayout: OnscreenKeyboardLayout): Promise
 
 function createOnscreenKeyReader(
     onscreenLayout: OnscreenKeyboardLayout,
-): { promise: Promise<string>; destroy(): void } {
+): KeyReader {
     const target = document.createElement("div");
     document.body.appendChild(target);
-    let keyboard: ReturnType<typeof mount>;
+    const queue: string[] = [];
+    const waiters: Array<(key: string) => void> = [];
 
-    const promise = new Promise<string>(resolve => {
-        keyboard = mount(OnscreenKeyboard, {
-            target,
-            props: {
-                layout: onscreenLayout,
-                onkey: resolve,
+    const keyboard = mount(OnscreenKeyboard, {
+        target,
+        props: {
+            layout: onscreenLayout,
+            onkey(key: string): void {
+                const waiter = waiters.shift();
+                if (waiter) {
+                    waiter(key);
+                } else {
+                    queue.push(key);
+                }
             },
-        });
+        },
     });
 
     return {
-        promise,
+        readKey(): Promise<string> {
+            const key = queue.shift();
+            if (key !== undefined) {
+                return Promise.resolve(key);
+            }
+
+            return new Promise(resolve => {
+                waiters.push(resolve);
+            });
+        },
         destroy(): void {
             unmount(keyboard).then(() => {
                 target.remove();
@@ -62,19 +82,36 @@ function createOnscreenKeyReader(
     };
 }
 
-async function readAnyKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
+export function createKeyReader(onscreenLayout: OnscreenKeyboardLayout): KeyReader {
     if (!shouldUseOnscreenKeyboard()) {
-        return readBrowserKey();
+        return {
+            readKey: readBrowserKey,
+            destroy(): void {
+            },
+        };
     }
 
-    const onscreenKey = createOnscreenKeyReader(onscreenLayout);
+    const onscreenKeyReader = createOnscreenKeyReader(onscreenLayout);
+
+    return {
+        readKey(): Promise<string> {
+            return Promise.race([
+                readBrowserKey(),
+                onscreenKeyReader.readKey(),
+            ]);
+        },
+        destroy(): void {
+            onscreenKeyReader.destroy();
+        },
+    };
+}
+
+async function readAnyKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
+    const keyReader = createKeyReader(onscreenLayout);
     try {
-        return await Promise.race([
-            readBrowserKey(),
-            onscreenKey.promise,
-        ]);
+        return await keyReader.readKey();
     } finally {
-        onscreenKey.destroy();
+        keyReader.destroy();
     }
 }
 
@@ -83,13 +120,16 @@ export async function readSynchronizedKey(
     inputId: string,
     owner: 0 | 1,
     onscreenLayout: OnscreenKeyboardLayout,
+    keyReader?: KeyReader,
 ): Promise<string> {
     if (!session) {
-        return readAnyKey(onscreenLayout);
+        return keyReader ? keyReader.readKey() : readAnyKey(onscreenLayout);
     }
 
     if (session.localPlayer === owner) {
-        const key = await readAnyKey(onscreenLayout);
+        const key = keyReader
+            ? await keyReader.readKey()
+            : await readAnyKey(onscreenLayout);
         session.sendKey(inputId, key);
         return key;
     }

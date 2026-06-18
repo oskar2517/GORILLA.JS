@@ -14,7 +14,7 @@ import type {
     Sprites,
 } from "./types";
 import { playTone } from "./audio";
-import { readSynchronizedKey } from "./keyboard";
+import { createKeyReader, readSynchronizedKey } from "./keyboard";
 
 async function readSharedInput(
     ctx: CanvasRenderingContext2D,
@@ -25,16 +25,23 @@ async function readSharedInput(
     prompt: string,
 ): Promise<string> {
     await session?.synchronize(inputId);
+    const keyReader = !session || session.localPlayer === 0
+        ? createKeyReader("full")
+        : undefined;
 
-    return readInput(
-        ctx,
-        column,
-        row,
-        prompt,
-        COLOR_GREY,
-        COLOR_BLACK,
-        () => readSynchronizedKey(session, inputId, 0, "full"),
-    );
+    try {
+        return await readInput(
+            ctx,
+            column,
+            row,
+            prompt,
+            COLOR_GREY,
+            COLOR_BLACK,
+            () => readSynchronizedKey(session, inputId, 0, "full", keyReader),
+        );
+    } finally {
+        keyReader?.destroy();
+    }
 }
 
 async function showTextIntro(
