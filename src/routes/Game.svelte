@@ -4,12 +4,30 @@
     import { gameLaunch } from "../lib/game-session";
     import { runGame } from "../game/main";
     import type { MultiplayerSession } from "../game/types";
+    import { shouldUseOnscreenKeyboard } from "../game/keyboard";
 
     const { push } = useNavigate();
 
     let canvas: HTMLCanvasElement;
     let error = $state("");
     let session: MultiplayerSession | undefined;
+
+    const mobile = shouldUseOnscreenKeyboard();
+
+    async function enterMobileGameDisplayMode(): Promise<void> {
+        if (!mobile) {
+            return;
+        }
+
+        try {
+            if (!document.fullscreenElement) {
+                await document.documentElement.requestFullscreen();
+            }
+
+            await screen.orientation.lock("landscape");
+        } catch {
+        }
+    }
 
     onMount(() => {
         const launch = $gameLaunch;
@@ -19,6 +37,7 @@
         }
 
         session = launch.mode === "online" ? launch.session : undefined;
+        enterMobileGameDisplayMode();
         runGame(canvas, session).catch((cause) => {
             error = String(cause);
         });
@@ -30,9 +49,9 @@
     });
 </script>
 
-<div class="game-wrapper">
+<div class="game-wrapper" class:mobile>
     <div class="game-frame">
-        <canvas bind:this={canvas} width="1280" height="700">
+        <canvas bind:this={canvas} width="1280" height="700" onclick={enterMobileGameDisplayMode}>
             Canvas API unavailable
         </canvas>
     </div>
@@ -73,5 +92,24 @@
 
     p {
         text-align: center;
+    }
+
+    .game-wrapper.mobile {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+
+        canvas {
+            width: 100%;
+            padding: 0;
+            border: none;
+        }
+
+        .game-frame {
+            padding: 0;
+            background-color: unset;
+            box-shadow: unset;
+            width: 100%;
+        }
     }
 </style>

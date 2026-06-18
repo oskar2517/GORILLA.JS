@@ -3,12 +3,9 @@ import type { OnscreenKeyboardLayout } from "../lib/OnscreenKeyboard.svelte";
 import OnscreenKeyboard from "../lib/OnscreenKeyboard.svelte";
 import type { MultiplayerSession } from "./types";
 
-function shouldUseOnscreenKeyboard(): boolean {
+export function shouldUseOnscreenKeyboard(): boolean {
     return true;
-    return (
-        window.matchMedia("(pointer: coarse)").matches ||
-        navigator.maxTouchPoints > 0
-    );
+    return window.matchMedia("(pointer: coarse)").matches;
 }
 
 export function readBrowserKey(): Promise<string> {

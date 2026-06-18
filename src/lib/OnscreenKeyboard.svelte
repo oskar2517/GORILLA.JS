@@ -83,7 +83,7 @@
         transform: translateX(-50%);
         width: 100%;
         max-width: 600px;
-        opacity: 0.8;
+        opacity: 0.6;
     }
 
     .row {
