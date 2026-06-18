@@ -100,7 +100,10 @@
         margin: 0;
 
         canvas {
-            width: 100%;
+            width: max(
+                0px,
+                min(100cqw, 182.857142857cqh)
+            );
             padding: 0;
             border: none;
         }
@@ -109,7 +112,6 @@
             padding: 0;
             background-color: unset;
             box-shadow: unset;
-            width: 100%;
         }
     }
 </style>
