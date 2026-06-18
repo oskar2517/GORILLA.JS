@@ -4,7 +4,6 @@ import OnscreenKeyboard from "../lib/OnscreenKeyboard.svelte";
 import type { MultiplayerSession } from "./types";
 
 export function shouldUseOnscreenKeyboard(): boolean {
-    return true;
     return window.matchMedia("(pointer: coarse)").matches;
 }
 
