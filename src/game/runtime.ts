@@ -1,5 +1,7 @@
+import { mount, unmount } from "svelte";
 import { COLOR_BLACK, COLOR_WHITE } from "./constants";
 import { drawText } from "./graphics";
+import OnscreenKeyboard, { type OnscreenKeyboardLayout } from "../lib/OnscreenKeyboard.svelte";
 import type { MultiplayerSession } from "./types";
 
 let randomState: number | undefined;
@@ -11,6 +13,14 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
     return image;
 }
 
+function shouldUseOnscreenKeyboard(): boolean {
+    return true;
+    return (
+        window.matchMedia("(pointer: coarse)").matches ||
+        navigator.maxTouchPoints > 0
+    );
+}
+
 export function readBrowserKey(): Promise<string> {
     return new Promise(resolve => {
         window.addEventListener("keydown", event => {
@@ -19,17 +29,49 @@ export function readBrowserKey(): Promise<string> {
     });
 }
 
+export function readOnscreenKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+
+    return new Promise(resolve => {
+        const keyboard = mount(OnscreenKeyboard, {
+            target,
+            props: {
+                layout: onscreenLayout,
+                onkey(key: string): void {
+                    resolve(key);
+                    unmount(keyboard).then(() => {
+                        target.remove();
+                    });
+                },
+            },
+        });
+    });
+}
+
+function readAnyKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
+    if (!shouldUseOnscreenKeyboard()) {
+        return readBrowserKey();
+    }
+
+    return Promise.race([
+        readBrowserKey(),
+        readOnscreenKey(onscreenLayout),
+    ]);
+}
+
 export async function readSynchronizedKey(
     session: MultiplayerSession | undefined,
     inputId: string,
     owner: 0 | 1,
+    onscreenLayout: OnscreenKeyboardLayout,
 ): Promise<string> {
     if (!session) {
-        return readBrowserKey();
+        return readAnyKey(onscreenLayout);
     }
 
     if (session.localPlayer === owner) {
-        const key = await readBrowserKey();
+        const key = await readAnyKey(onscreenLayout);
         session.sendKey(inputId, key);
         return key;
     }

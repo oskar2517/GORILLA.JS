@@ -194,6 +194,7 @@ async function readShotNumber(
             session,
             inputId,
             activePlayer,
+            "number"
         );
 
         if (/^[0-9]$/.test(key)) {

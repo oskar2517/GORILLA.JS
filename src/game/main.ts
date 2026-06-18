@@ -33,7 +33,7 @@ async function readSharedInput(
         prompt,
         COLOR_GREY,
         COLOR_BLACK,
-        () => readSynchronizedKey(session, inputId, 0),
+        () => readSynchronizedKey(session, inputId, 0, "full"),
     );
 }
 
@@ -63,6 +63,7 @@ async function showTextIntro(
         session,
         "text-intro",
         0,
+        "full"
     ).then(() => {
         keyPressed = true;
     });
@@ -169,7 +170,7 @@ async function readGameInputs(
     drawText(ctx, 35, 21, "Your Choice?", COLOR_GREY, COLOR_BLACK);
 
     await session?.synchronize("config-action");
-    const key = await readSynchronizedKey(session, "config-action", 0);
+    const key = await readSynchronizedKey(session, "config-action", 0, "full");
     let nextAction: GameInputAction = "game";
     if (key.toLowerCase() === "v") {
         nextAction = "intro"
@@ -272,6 +273,7 @@ async function showResults(
         session,
         "game-results",
         0,
+        "full"
     ).then(() => {
         keyPressed = true;
     });
