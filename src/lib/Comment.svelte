@@ -22,4 +22,15 @@
             left: 0;
         }
     }
+
+    @media (max-width: 700px) {
+        p {
+            line-height: 26px;
+            min-height: 26px;
+
+            &::before {
+                display: none;
+            }
+        }
+    }
 </style>

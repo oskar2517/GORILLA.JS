@@ -44,4 +44,11 @@
         display: block;
         margin: 20px auto;
     }
+
+    @media (max-width: 700px) {
+        .gorilla {
+            height: 140px;
+            margin: 12px auto 20px;
+        }
+    }
 </style>

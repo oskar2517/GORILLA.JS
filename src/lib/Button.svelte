@@ -30,4 +30,17 @@
             box-shadow: 20px 20px 0px 1px var(--color-black);
         }
     }
+
+    @media (max-width: 700px) {
+        .button {
+            width: min(100%, 320px);
+            margin: 24px auto;
+            padding: 14px 18px;
+            font-size: 20px;
+        }
+
+        .button:not(:disabled):hover {
+            box-shadow: 10px 10px 0px 1px var(--color-black);
+        }
+    }
 </style>
