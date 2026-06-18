@@ -43,6 +43,7 @@
 
     const options: RouterOptions<RouteNames> = {
         routes,
+        hash: true
     } as const;
 </script>
 
