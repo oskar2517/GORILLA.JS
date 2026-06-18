@@ -1,5 +1,5 @@
 <script lang="ts">
-    export type OnscreenKeyboardLayout = "full" | "number";
+    export type OnscreenKeyboardLayout = "full" | "number" | "continue";
 
     interface Props {
         layout: OnscreenKeyboardLayout;
@@ -10,20 +10,27 @@
 
     let shift = $state(false);
 
-    const keys = $derived(
-        layout === "number"
-            ? [
-                ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-                [".", "Backspace", "Enter"]
-            ]
-            : [
-                  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-                  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-                  ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-                  ["Shift", "z", "x", "c", "v", "b", "n", "m", "Backspace"],
-                  [",", " ", ".", "Enter"],
-              ],
-    );
+    function getKeys(layout: OnscreenKeyboardLayout) {
+        switch (layout) {
+            case "full":
+                return [
+                    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+                    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+                    ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+                    ["Shift", "z", "x", "c", "v", "b", "n", "m", "Backspace"],
+                    [",", " ", ".", "Enter"],
+                ];
+            case "number":
+                return [
+                    ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+                    [".", "Backspace", "Enter"],
+                ];
+            case "continue":
+                return [["Continue"]];
+        }
+    }
+
+    const keys = $derived(getKeys(layout));
 
     function shouldBeShifted(key: string): boolean {
         if (shift && key.length === 1 && /[a-z]/.test(key)) {

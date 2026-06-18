@@ -63,7 +63,7 @@ async function showTextIntro(
         session,
         "text-intro",
         0,
-        "full"
+        "continue"
     ).then(() => {
         keyPressed = true;
     });
@@ -273,7 +273,7 @@ async function showResults(
         session,
         "game-results",
         0,
-        "full"
+        "continue"
     ).then(() => {
         keyPressed = true;
     });
