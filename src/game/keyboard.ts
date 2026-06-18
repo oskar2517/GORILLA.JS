@@ -36,15 +36,47 @@ export function readOnscreenKey(onscreenLayout: OnscreenKeyboardLayout): Promise
     });
 }
 
-function readAnyKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
+function createOnscreenKeyReader(
+    onscreenLayout: OnscreenKeyboardLayout,
+): { promise: Promise<string>; destroy(): void } {
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+    let keyboard: ReturnType<typeof mount>;
+
+    const promise = new Promise<string>(resolve => {
+        keyboard = mount(OnscreenKeyboard, {
+            target,
+            props: {
+                layout: onscreenLayout,
+                onkey: resolve,
+            },
+        });
+    });
+
+    return {
+        promise,
+        destroy(): void {
+            unmount(keyboard).then(() => {
+                target.remove();
+            });
+        },
+    };
+}
+
+async function readAnyKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
     if (!shouldUseOnscreenKeyboard()) {
         return readBrowserKey();
     }
 
-    return Promise.race([
-        readBrowserKey(),
-        readOnscreenKey(onscreenLayout),
-    ]);
+    const onscreenKey = createOnscreenKeyReader(onscreenLayout);
+    try {
+        return await Promise.race([
+            readBrowserKey(),
+            onscreenKey.promise,
+        ]);
+    } finally {
+        onscreenKey.destroy();
+    }
 }
 
 export async function readSynchronizedKey(
