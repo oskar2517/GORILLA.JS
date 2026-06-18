@@ -8,6 +8,9 @@ const STUN_ICE_SERVERS: RTCIceServer[] = [
     { urls: "stun:stun1.l.google.com:19302" },
     { urls: "stun:stun.cloudflare.com:3478" },
 ];
+const SIGNALING_POLL_RATE_MS = 5 * 1000;
+const IDLE_SIGNALING_AFTER_MS = 10 * 60 * 1000;
+const IDLE_SIGNALING_POLL_RATE_MS = 30 * 1000;
 
 interface KeyMessage {
     type: "key";
@@ -73,8 +76,9 @@ function createP2PCFClient(role: "host" | "join", roomCode: string): P2PCFClient
         workerUrl: SIGNALING_WORKER_URL,
         stunIceServers: STUN_ICE_SERVERS,
         turnIceServers: STUN_ICE_SERVERS,
-        idlePollingAfterMs: 10 * 60 * 1000,
-        slowPollingRateMs: 1000,
+        idlePollingAfterMs: IDLE_SIGNALING_AFTER_MS,
+        idlePollingRateMs: IDLE_SIGNALING_POLL_RATE_MS,
+        slowPollingRateMs: SIGNALING_POLL_RATE_MS,
     }) as P2PCFClient;
 }
 
