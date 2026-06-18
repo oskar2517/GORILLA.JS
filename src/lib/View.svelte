@@ -44,5 +44,6 @@
         background-color: var(--color-grey);
         padding: 5px 20px;
         font-size: 28px;
+        z-index: 1000;
     }
 </style>
