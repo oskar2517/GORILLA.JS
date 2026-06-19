@@ -20,26 +20,6 @@ export function readBrowserKey(): Promise<string> {
     });
 }
 
-export function readOnscreenKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
-    const target = document.createElement("div");
-    document.body.appendChild(target);
-
-    return new Promise(resolve => {
-        const keyboard = mount(OnscreenKeyboard, {
-            target,
-            props: {
-                layout: onscreenLayout,
-                onkey(key: string): void {
-                    resolve(key);
-                    unmount(keyboard).then(() => {
-                        target.remove();
-                    });
-                },
-            },
-        });
-    });
-}
-
 function createOnscreenKeyReader(
     onscreenLayout: OnscreenKeyboardLayout,
 ): KeyReader {
@@ -74,10 +54,9 @@ function createOnscreenKeyReader(
                 waiters.push(resolve);
             });
         },
-        destroy(): void {
-            unmount(keyboard).then(() => {
-                target.remove();
-            });
+        async destroy(): Promise<void> {
+            await unmount(keyboard);
+            target.remove();
         },
     };
 }
@@ -86,8 +65,7 @@ export function createKeyReader(onscreenLayout: OnscreenKeyboardLayout): KeyRead
     if (!shouldUseOnscreenKeyboard()) {
         return {
             readKey: readBrowserKey,
-            destroy(): void {
-            },
+            destroy(): void { },
         };
     }
 

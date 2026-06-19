@@ -25,11 +25,10 @@
             }
 
             await screen.orientation.lock("landscape");
-        } catch {
-        }
+        } catch {}
     }
 
-    onMount(() => {
+    onMount(async () => {
         const launch = $gameLaunch;
         if (!launch) {
             push({ path: "/" });
@@ -38,20 +37,28 @@
 
         session = launch.mode === "online" ? launch.session : undefined;
         enterMobileGameDisplayMode();
-        runGame(canvas, session).catch((cause) => {
+
+        try {
+            await runGame(canvas, session);
+        } catch (cause) {
             error = String(cause);
-        });
+        }
     });
 
     onDestroy(() => {
         session?.close();
-        gameLaunch.set(undefined);
+        $gameLaunch = undefined;
     });
 </script>
 
 <div class="game-wrapper" class:mobile>
     <div class="game-frame">
-        <canvas bind:this={canvas} width="1280" height="700" onclick={enterMobileGameDisplayMode}>
+        <canvas
+            bind:this={canvas}
+            width="1280"
+            height="700"
+            onclick={enterMobileGameDisplayMode}
+        >
             Canvas API unavailable
         </canvas>
     </div>
@@ -101,10 +108,7 @@
         background-color: var(--color-black);
 
         canvas {
-            width: max(
-                0px,
-                min(100cqw, 182.857142857cqh)
-            );
+            width: max(0px, min(100cqw, 182.857142857cqh));
             padding: 0;
             border: none;
         }

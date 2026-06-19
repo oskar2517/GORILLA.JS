@@ -81,7 +81,7 @@ export function readInput(
         }, 100);
 
         draw();
-        void readKeys();
+        readKeys();
     });
 }
 
