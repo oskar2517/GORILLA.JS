@@ -24,7 +24,12 @@ function createOnscreenKeyReader(
     onscreenLayout: OnscreenKeyboardLayout,
 ): KeyReader {
     const target = document.createElement("div");
-    document.body.appendChild(target);
+    // NOTE: This is an ugly fix.
+    const wrapperElement = document.querySelector("#gameWrapper");
+    if (!wrapperElement) {
+        throw new Error("Could not find game wrapper element");
+    }
+    wrapperElement.appendChild(target);
     const queue: string[] = [];
     const waiters: Array<(key: string) => void> = [];
 

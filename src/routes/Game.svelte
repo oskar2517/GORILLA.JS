@@ -51,7 +51,7 @@
     });
 </script>
 
-<div class="game-wrapper" class:mobile>
+<div class="game-wrapper" class:mobile id="gameWrapper">
     <div class="game-frame">
         <canvas
             bind:this={canvas}
