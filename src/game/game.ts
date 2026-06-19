@@ -623,6 +623,8 @@ export async function startGame(
     let turnNumber = 0;
 
     for (let round = 0; round < gameInputs.rounds; round++) {
+        await session?.synchronize(`round-${round}`);
+
         clearScreen(ctx, COLOR_SKY);
         await waitFor(0.5);
 
