@@ -5,7 +5,9 @@
     import { useNavigate } from "@dvcol/svelte-simple-router";
     import { gameLaunch } from "../lib/game-session";
     import View from "../lib/View.svelte";
-    import GitHubLink from "../lib/GitHubLink.svelte";
+    import IconLink from "../lib/IconLink.svelte";
+    import iconGithub from "../assets/github.svg";
+    import iconContact from "../assets/envelope-solid.svg";
 
     const { push } = useNavigate();
 
@@ -34,7 +36,8 @@
     <Button value="Join online game" onclick={() => push({ path: "/join" })}
     ></Button>
 
-    <GitHubLink></GitHubLink>
+    <IconLink text="View on GitHub" icon={iconGithub} href="https://github.com/oskar2517/GORILLA.JS"></IconLink>
+    <IconLink text="Contact me" icon={iconContact} href="mailto:hello@gorillas.zone"></IconLink>
 </View>
 
 <style lang="scss">

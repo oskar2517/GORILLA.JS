@@ -1,14 +1,20 @@
 <script lang="ts">
-    import icon from "../assets/github.svg";
+    interface Props {
+        href: string;
+        icon: string;
+        text: string;
+    }
+
+    const { href, icon, text } = $props();
 </script>
 
 <div class="wrapper">
     <a
         class="github-link"
-        href="https://github.com/oskar2517/GORILLA.JS"
+        {href}
         target="_blank"
     >
-        <img class="icon" src={icon} alt="icon" /> View on GitHub
+        <img class="icon" src={icon} alt="icon" /> {text}
     </a>
 </div>
 
@@ -16,6 +22,7 @@
     .wrapper {
         display: flex;
         justify-content: center;
+        margin: 20px;
     }
 
     .github-link:visited,
