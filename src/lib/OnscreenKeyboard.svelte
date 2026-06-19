@@ -91,6 +91,7 @@
         width: 100%;
         max-width: 600px;
         opacity: 0.6;
+        user-select: none;
     }
 
     .row {
