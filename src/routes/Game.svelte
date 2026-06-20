@@ -76,6 +76,7 @@
         container-type: size;
         display: grid;
         place-items: center;
+        touch-action: none;
     }
 
     .game-frame {
@@ -95,6 +96,7 @@
         padding: 10px 20px;
         image-rendering: pixelated;
         border: solid 5px var(--color-black);
+        touch-action: none;
     }
 
     p {
