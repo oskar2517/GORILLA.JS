@@ -9,6 +9,7 @@
     const { layout, onkey }: Props = $props();
 
     let shift = $state(false);
+    let shown = $state(true);
 
     function getKeys(layout: OnscreenKeyboardLayout) {
         switch (layout) {
@@ -71,15 +72,25 @@
 </script>
 
 <div class="keyboard">
-    {#each keys as r}
-        <div class="row">
-            {#each r as k}
-                <button class="key" onclick={() => handleKeyButtonPress(k)}
-                    >{displayKey(k)}</button
-                >
+    <button class="button-toggle-keyboard" onclick={() => (shown = !shown)}>
+        &#x2195;
+    </button>
+
+    {#if shown}
+        <div class="keys">
+            {#each keys as r}
+                <div class="row">
+                    {#each r as k}
+                        <button
+                            class="key"
+                            onclick={() => handleKeyButtonPress(k)}
+                            >{displayKey(k)}</button
+                        >
+                    {/each}
+                </div>
             {/each}
         </div>
-    {/each}
+    {/if}
 </div>
 
 <style lang="scss">
@@ -99,8 +110,8 @@
         width: 100%;
     }
 
+    .button-toggle-keyboard,
     .key {
-        flex: 1 1 0;
         font-family: "IBM EGA 8x14", sans-serif;
         text-rendering: geometricPrecision;
         font-size: 28px;
@@ -112,5 +123,14 @@
         &:active {
             filter: brightness(0.8);
         }
+    }
+
+    .key {
+        flex: 1 1 0;
+    }
+
+    .button-toggle-keyboard {
+        margin: 5px auto;
+        display: block;
     }
 </style>
