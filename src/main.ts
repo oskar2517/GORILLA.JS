@@ -1,5 +1,4 @@
 import { mount } from "svelte";
-import "promise-polyfill/src/polyfill";
 import "./app.css";
 import App from "./App.svelte";
 
