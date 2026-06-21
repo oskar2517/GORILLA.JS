@@ -61,9 +61,9 @@
             case " ":
                 return "    ";
             case "Shift":
-                return "\u0018";
+                return "\u2191";
             case "Backspace":
-                return "\u0011";
+                return "\u25C4";
         }
 
         return key;
