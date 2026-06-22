@@ -545,6 +545,10 @@ async function doShot(
     );
 
     drawText(ctx, inputColumn, 3, "Velocity:");
+    /**
+     * NOTE: In the original game, velocity is implicitly rounded to an integer since
+     * it dees not define an explicit type and variables are declared as ints by default.
+     */
     const velocity = qbasicRound(
         await readShotNumber(
             ctx,
