@@ -38,10 +38,18 @@
         session = launch.mode === "online" ? launch.session : undefined;
         enterMobileGameDisplayMode();
 
+        if (session !== undefined) {
+            session.onTimeout = () => {
+                error = "Connection timeout";
+            };
+        }
+
         try {
             await runGame(canvas, session);
         } catch (cause) {
-            error = String(cause);
+            if (error === "") {
+                error = String(cause);
+            }
         }
     });
 
@@ -52,7 +60,7 @@
 </script>
 
 <div class="game-wrapper" class:mobile id="gameWrapper">
-    <div class="game-frame">
+    <div class="game-frame" class:error>
         <canvas
             bind:this={canvas}
             width="1280"
@@ -83,6 +91,10 @@
         padding: 10px 20px;
         background-color: var(--color-grey);
         box-shadow: 20px 20px 0px 1px var(--color-black);
+
+        &.error {
+            display: none;
+        }
     }
 
     canvas {

@@ -11,6 +11,8 @@ const STUN_ICE_SERVERS: RTCIceServer[] = [
 const SIGNALING_POLL_RATE_MS = 5 * 1000;
 const IDLE_SIGNALING_AFTER_MS = 10 * 60 * 1000;
 const IDLE_SIGNALING_POLL_RATE_MS = 30 * 1000;
+const HEARTBEAT_INTERVAL = 5000;
+const HEARTBEAT_TIMEOUT = 15_000;
 
 interface KeyMessage {
     type: "key";
@@ -28,7 +30,11 @@ interface ReadyMessage {
     syncId: string;
 }
 
-type Message = KeyMessage | SeedMessage | ReadyMessage;
+interface HeartbeatMessage {
+    type: "heartbeat";
+}
+
+type Message = KeyMessage | SeedMessage | ReadyMessage | HeartbeatMessage;
 
 interface P2PCFPeer {
     id: string;
@@ -93,14 +99,52 @@ function createSession(
     const waiters: Array<{
         matches: (message: Message) => boolean;
         resolve: (message: Message) => void;
+        reject: (cause: Error) => void;
     }> = [];
+
+    let lastReceivedAt = Date.now();
+    let timeoutHandler = () => { };
+    let closed = false;
+
+    const closeConnection = (): void => {
+        if (closed) {
+            return;
+        }
+
+        closed = true;
+        window.clearInterval(heartbeatInterval);
+        window.clearInterval(heartbeatTimeout);
+        client.destroy();
+
+        for (const waiter of waiters.splice(0)) {
+            waiter.reject(new Error("Connection closed"));
+        }
+    };
+
+    const heartbeatInterval = setInterval(() => {
+        send({ type: "heartbeat" } satisfies HeartbeatMessage);
+    }, HEARTBEAT_INTERVAL);
+
+    const heartbeatTimeout = setInterval(() => {
+        if (Date.now() - lastReceivedAt > HEARTBEAT_TIMEOUT) {
+            closeConnection();
+            timeoutHandler();
+        }
+    }, HEARTBEAT_TIMEOUT);
 
     client.on("msg", (sender, data) => {
         if (sender.id !== peer.id) {
             return;
         }
 
+        lastReceivedAt = Date.now();
+
         const message = JSON.parse(decoder.decode(data)) as Message;
+
+        if (message.type === "heartbeat") {
+            return;
+        }
+
         const index = waiters.findIndex(waiter => waiter.matches(message));
 
         if (index >= 0) {
@@ -111,19 +155,27 @@ function createSession(
     });
 
     const send = (message: Message): void => {
+        if (closed) {
+            throw new Error("Connection closed");
+        }
+
         client.send(peer, encoder.encode(JSON.stringify(message)));
     };
 
     const receive = (
         matches: (message: Message) => boolean,
     ): Promise<Message> => {
+        if (closed) {
+            return Promise.reject(new Error("Connection closed"));
+        }
+
         const index = inbox.findIndex(matches);
         if (index >= 0) {
             return Promise.resolve(inbox.splice(index, 1)[0]);
         }
 
-        return new Promise(resolve => {
-            waiters.push({ matches, resolve });
+        return new Promise((resolve, reject) => {
+            waiters.push({ matches, resolve, reject });
         });
     };
 
@@ -153,8 +205,11 @@ function createSession(
             );
         },
         close(): void {
-            client.destroy();
+            closeConnection();
         },
+        set onTimeout(handler: () => void) {
+            timeoutHandler = handler;
+        }
     };
 }
 
