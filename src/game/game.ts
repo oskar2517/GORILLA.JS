@@ -256,7 +256,7 @@ async function doVictoryDance(
             player.y,
             COLOR_GORILLA,
         );
-        
+
         await playTone("MFO0L32EFGEFDC");
         await timeline.wait(0.2);
 
@@ -391,6 +391,7 @@ async function plotShot(
     activePlayer: number,
     angleDegrees: number,
     velocity: number,
+    session: MultiplayerSession | undefined,
 ): Promise<ShotResult> {
     const player = state.players[activePlayer];
     const angle = angleDegrees / 180 * Math.PI;
@@ -512,6 +513,10 @@ async function plotShot(
         time += 0.1;
     }
 
+    if (impact) {
+        await session?.confirmImpact(qbasicRound(x), qbasicRound(y));
+    }
+
     if (impact && pixelColor !== COLOR_GORILLA) {
         await animateSmallExplosion(ctx, x + adjustment, y + adjustment);
     } else if (pixelColor === COLOR_GORILLA) {
@@ -578,6 +583,7 @@ async function doShot(
         activePlayer,
         angle,
         velocity,
+        session
     );
     if (shotResult.playerHit === NO_PLAYER) { // No player hit
         return {

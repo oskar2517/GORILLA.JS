@@ -47,6 +47,7 @@
         try {
             await runGame(canvas, session);
         } catch (cause) {
+            session?.close();
             if (error === "") {
                 error = String(cause);
             }

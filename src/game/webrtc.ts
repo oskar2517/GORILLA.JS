@@ -34,7 +34,17 @@ interface HeartbeatMessage {
     type: "heartbeat";
 }
 
-type Message = KeyMessage | SeedMessage | ReadyMessage | HeartbeatMessage;
+interface ImpactMessage {
+    type: "impact";
+    x: number;
+    y: number;
+}
+
+type Message = KeyMessage
+    | SeedMessage
+    | ReadyMessage
+    | HeartbeatMessage
+    | ImpactMessage;
 
 interface P2PCFPeer {
     id: string;
@@ -203,6 +213,16 @@ function createSession(
             await receive(
                 value => value.type === "ready" && value.syncId === syncId,
             );
+        },
+        async confirmImpact(x: number, y: number): Promise<void> {
+            send({ type: "impact", x, y });
+
+            const message = await receive(value => value.type === "impact");
+            const other = message as ImpactMessage;
+
+            if (x !== other.x || y !== other.y) {
+                throw new Error("Impact coordinate mismatch");
+            }
         },
         close(): void {
             closeConnection();

@@ -56,6 +56,7 @@ export interface MultiplayerSession {
     sendSeed(seed: number): void;
     receiveSeed(): Promise<number>;
     synchronize(syncId: string): Promise<void>;
+    confirmImpact(x: number, y: number): Promise<void>;
     set onTimeout(handler: () => void);
     close(): void;
 }
