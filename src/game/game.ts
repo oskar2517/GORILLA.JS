@@ -517,14 +517,14 @@ async function plotShot(
         time += 0.1;
     }
 
-    if (impact) {
-        await session?.confirmImpact(qbasicRound(x), qbasicRound(y));
-    }
-
     if (impact && pixelColor !== COLOR_GORILLA) {
         await animateSmallExplosion(ctx, x + adjustment, y + adjustment);
     } else if (pixelColor === COLOR_GORILLA) {
         playerHit = await explodeGorilla(ctx, state, x);
+    }
+
+    if (impact) {
+        await session?.confirmImpact(qbasicRound(x), qbasicRound(y));
     }
 
     return {
