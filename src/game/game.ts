@@ -481,6 +481,10 @@ async function plotShot(
                 if (pixelColor === COLOR_SKY) {
                     impact = false;
 
+                    /**
+                     * NOTE: The additional < > 39 check is present in the original and
+                     * may cause unwanted colissions with the sun in edge cases.
+                     */
                     if (shotInSun && (Math.abs(Math.floor(SCREEN_WIDTH / 2) - x) > 20 || y > 39)) {
                         shotInSun = false;
                     }
