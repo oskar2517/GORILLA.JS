@@ -34,11 +34,7 @@
     const keys = $derived(getKeys(layout));
 
     function shouldBeShifted(key: string): boolean {
-        if (shift && key.length === 1 && /[a-z]/.test(key)) {
-            return true;
-        }
-
-        return false;
+        return shift && key.length === 1 && /[a-z]/.test(key);
     }
 
     function handleKeyButtonPress(key: string): void {
