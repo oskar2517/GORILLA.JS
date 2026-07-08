@@ -1,7 +1,6 @@
 import {
     COLOR_BUILDINGS,
     COLOR_SKY,
-    COLOR_WHITE,
     COLOR_WINDOW_DARK,
     COLOR_WINDOW_LIT,
     SCREEN_HEIGHT,
@@ -9,12 +8,44 @@ import {
     TEXT_COLUMN_COUNT,
     TEXT_ROW_COUNT,
     COLOR_WIND_ARROW,
-    COLOR_RED,
-    COLOR_BLACK,
-    COLOR_SUN
+    PALETTE,
+    COLOR_SUN,
 } from "./constants";
 import { createTimeline, qbasicRound, randomNumber } from "./runtime";
 import type { Sprites } from "./types";
+
+function findClosestValidColor(color: string): string {
+    const distance = (a: number[], b: number[]) => {
+        if (a.length !== b.length) {
+            throw new Error("Expected arrays of equal length");
+        }
+
+        let sum = 0;
+
+        for (let i = 0; i < a.length; i++) {
+            sum += Math.pow(a[i] - b[i], 2);
+        }
+
+        return sum;
+    };
+
+    const channels = (c: string) => c.substring(1).match(/.{2}/g)!.map(h => parseInt(h, 16));
+
+    const colorIn = channels(color);
+
+    const candidates = Object.values(PALETTE)
+        .map(c => {
+            const candidate = channels(c);
+
+            return {
+                color: c,
+                distance: distance(colorIn, candidate)
+            };
+        })
+        .sort((a, b) => a.distance - b.distance);
+
+    return candidates[0].color;
+}
 
 export function getPixelAt(
     ctx: CanvasRenderingContext2D,
@@ -37,15 +68,16 @@ export function getPixelAt(
         1,
     ).data;
 
+    const hexColor = "#" + [red, green, blue]
+        .map(c => c.toString(16).padStart(2, "0"))
+        .join("");
+
     /**
      * NOTE: For whatever reason, the exact color values of pixels do not
      * necessarily match what was drawn. I have no idea why this is happening
      * but I am normalizing them the nearest EGA pallette...
      */
-    return `#${[red, green, blue]
-        .map(value => Math.round(value / 0x55) * 0x55)
-        .map(value => value.toString(16).padStart(2, "0"))
-        .join("")}`.toUpperCase();
+    return findClosestValidColor(hexColor);
 }
 
 /**
@@ -76,7 +108,7 @@ export function drawText(
     column: number,
     row: number,
     text: string,
-    foregroundColor = COLOR_WHITE,
+    foregroundColor = PALETTE.WHITE,
     backgroundColor = COLOR_SKY,
 ): void {
     const x = columnToPixel(column);
@@ -93,7 +125,7 @@ export function drawCenteredText(
     ctx: CanvasRenderingContext2D,
     row: number,
     text: string,
-    foregroundColor = COLOR_WHITE,
+    foregroundColor = PALETTE.WHITE,
     backgroundColor = COLOR_SKY,
 ): void {
     const column = Math.floor(TEXT_COLUMN_COUNT / 2)
@@ -275,16 +307,16 @@ export function drawSparkleBox(
     // Draw top and bottom row
     const topStart = phase - 1;
     const bottomStart = 5 - phase;
-    drawText(ctx, 1, 1, sparkles.slice(topStart, topStart + TEXT_COLUMN_COUNT), COLOR_RED, COLOR_BLACK);
-    drawText(ctx, 1, 22, sparkles.slice(bottomStart, bottomStart + TEXT_COLUMN_COUNT), COLOR_RED, COLOR_BLACK);
+    drawText(ctx, 1, 1, sparkles.slice(topStart, topStart + TEXT_COLUMN_COUNT), PALETTE.RED, PALETTE.BLACK);
+    drawText(ctx, 1, 22, sparkles.slice(bottomStart, bottomStart + TEXT_COLUMN_COUNT), PALETTE.RED, PALETTE.BLACK);
 
     // Draw left and right row
     for (let row = 2; row <= 21; row++) {
         const sparklePosition = (phase + row) % 5;
         const character = sparklePosition == 1 ? '*' : ' ';
 
-        drawText(ctx, TEXT_COLUMN_COUNT, row, character, COLOR_RED, COLOR_BLACK);
-        drawText(ctx, 1, 23 - row, character, COLOR_RED, COLOR_BLACK);
+        drawText(ctx, TEXT_COLUMN_COUNT, row, character, PALETTE.RED, PALETTE.BLACK);
+        drawText(ctx, 1, 23 - row, character, PALETTE.RED, PALETTE.BLACK);
     }
 }
 

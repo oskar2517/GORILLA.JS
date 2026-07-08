@@ -1,6 +1,6 @@
 import { startGame } from "./game";
 import { loadSprites } from "./sprites";
-import { COLOR_BLACK, COLOR_BLUE, COLOR_GORILLA, COLOR_GREY, COLOR_WHITE } from "./constants";
+import { PALETTE, COLOR_GORILLA } from "./constants";
 import { clearScreen, drawCenteredText, drawSparkleBox, drawSprite, drawText } from "./graphics";
 import {
     createTimeline,
@@ -35,8 +35,8 @@ async function readSharedInput(
             column,
             row,
             prompt,
-            COLOR_GREY,
-            COLOR_BLACK,
+            PALETTE.GRAY,
+            PALETTE.BLACK,
             () => readSynchronizedKey(session, inputId, 0, "full", keyReader),
         );
     } finally {
@@ -48,18 +48,18 @@ async function showTextIntro(
     ctx: CanvasRenderingContext2D,
     session: MultiplayerSession | undefined,
 ): Promise<void> {
-    clearScreen(ctx, COLOR_BLACK);
+    clearScreen(ctx, PALETTE.BLACK);
 
-    drawCenteredText(ctx, 4, "Q B a s i c    G O R I L L A S", COLOR_WHITE, COLOR_BLACK);
-    drawCenteredText(ctx, 6, "Copyright (C) IBM Corporation 1991", COLOR_GREY, COLOR_BLACK);
+    drawCenteredText(ctx, 4, "Q B a s i c    G O R I L L A S", PALETTE.WHITE, PALETTE.BLACK);
+    drawCenteredText(ctx, 6, "Copyright (C) IBM Corporation 1991", PALETTE.GRAY, PALETTE.BLACK);
 
-    drawCenteredText(ctx, 8, "Your mission is to hit your opponent with the exploding", COLOR_GREY, COLOR_BLACK);
-    drawCenteredText(ctx, 9, "banana by varying the angle and power of your throw, taking", COLOR_GREY, COLOR_BLACK);
-    drawCenteredText(ctx, 10, "into account wind speed, gravity, and the city skyline.", COLOR_GREY, COLOR_BLACK);
-    drawCenteredText(ctx, 11, "The wind speed is shown by a directional arrow at the bottom", COLOR_GREY, COLOR_BLACK);
-    drawCenteredText(ctx, 12, "of the playing field, its length relative to its strength.", COLOR_GREY, COLOR_BLACK);
+    drawCenteredText(ctx, 8, "Your mission is to hit your opponent with the exploding", PALETTE.GRAY, PALETTE.BLACK);
+    drawCenteredText(ctx, 9, "banana by varying the angle and power of your throw, taking", PALETTE.GRAY, PALETTE.BLACK);
+    drawCenteredText(ctx, 10, "into account wind speed, gravity, and the city skyline.", PALETTE.GRAY, PALETTE.BLACK);
+    drawCenteredText(ctx, 11, "The wind speed is shown by a directional arrow at the bottom", PALETTE.GRAY, PALETTE.BLACK);
+    drawCenteredText(ctx, 12, "of the playing field, its length relative to its strength.", PALETTE.GRAY, PALETTE.BLACK);
 
-    drawCenteredText(ctx, 24, "Press any key to continue", COLOR_GREY, COLOR_BLACK);
+    drawCenteredText(ctx, 24, "Press any key to continue", PALETTE.GRAY, PALETTE.BLACK);
 
     await session?.synchronize("text-intro");
 
@@ -90,7 +90,7 @@ async function readGameInputs(
     ctx: CanvasRenderingContext2D,
     session: MultiplayerSession | undefined,
 ): Promise<GameInputs> {
-    clearScreen(ctx, COLOR_BLACK);
+    clearScreen(ctx, PALETTE.BLACK);
 
     let player1Name = await readSharedInput(
         ctx,
@@ -124,7 +124,7 @@ async function readGameInputs(
     let rounds: number;
     do {
         // Clear input area for repeated inputs
-        drawText(ctx, 56, 12, " ".repeat(25), COLOR_BLACK, COLOR_BLACK);
+        drawText(ctx, 56, 12, " ".repeat(25), PALETTE.BLACK, PALETTE.BLACK);
 
         roundsText = await readSharedInput(
             ctx,
@@ -152,7 +152,7 @@ async function readGameInputs(
     let gravity: number;
     do {
         // Clear input area for repeated inputs
-        drawText(ctx, 53, 14, " ".repeat(28), COLOR_BLACK, COLOR_BLACK);
+        drawText(ctx, 53, 14, " ".repeat(28), PALETTE.BLACK, PALETTE.BLACK);
 
         gravityText = await readSharedInput(
             ctx,
@@ -171,10 +171,10 @@ async function readGameInputs(
         gravity = 9.8;
     }
 
-    drawText(ctx, 34, 16, "--------------", COLOR_GREY, COLOR_BLACK);
-    drawText(ctx, 34, 18, "V = View Intro", COLOR_GREY, COLOR_BLACK);
-    drawText(ctx, 34, 19, "P = Play Game", COLOR_GREY, COLOR_BLACK);
-    drawText(ctx, 35, 21, "Your Choice?", COLOR_GREY, COLOR_BLACK);
+    drawText(ctx, 34, 16, "--------------", PALETTE.GRAY, PALETTE.BLACK);
+    drawText(ctx, 34, 18, "V = View Intro", PALETTE.GRAY, PALETTE.BLACK);
+    drawText(ctx, 34, 19, "P = Play Game", PALETTE.GRAY, PALETTE.BLACK);
+    drawText(ctx, 35, 21, "Your Choice?", PALETTE.GRAY, PALETTE.BLACK);
 
     await session?.synchronize("config-action");
     const key = await readSynchronizedKey(session, "config-action", 0, "full");
@@ -197,12 +197,12 @@ async function showIntro(ctx: CanvasRenderingContext2D, gameInputs: GameInputs, 
     const y = 175
     const timeline = createTimeline();
 
-    clearScreen(ctx, COLOR_BLUE);
+    clearScreen(ctx, PALETTE.BLUE);
 
-    drawCenteredText(ctx, 2, "Q B A S I C   G O R I L L A S", COLOR_WHITE, COLOR_BLUE);
-    drawCenteredText(ctx, 5, "             STARRING:               ", COLOR_WHITE, COLOR_BLUE);
+    drawCenteredText(ctx, 2, "Q B A S I C   G O R I L L A S", PALETTE.WHITE, PALETTE.BLUE);
+    drawCenteredText(ctx, 5, "             STARRING:               ", PALETTE.WHITE, PALETTE.BLUE);
 
-    drawCenteredText(ctx, 7, `${gameInputs.player1Name} AND ${gameInputs.player2Name}`, COLOR_WHITE, COLOR_BLUE);
+    drawCenteredText(ctx, 7, `${gameInputs.player1Name} AND ${gameInputs.player2Name}`, PALETTE.WHITE, PALETTE.BLUE);
 
     drawSprite(ctx, sprites.gorillaArmsDown, x - 13, y, COLOR_GORILLA);
     drawSprite(ctx, sprites.gorillaArmsDown, x + 47, y, COLOR_GORILLA);
@@ -260,18 +260,18 @@ async function showResults(
     wins: [number, number],
     session: MultiplayerSession | undefined,
 ): Promise<void> {
-    clearScreen(ctx, COLOR_BLACK);
+    clearScreen(ctx, PALETTE.BLACK);
 
-    drawCenteredText(ctx, 8, "GAME OVER!", COLOR_GREY, COLOR_BLACK);
-    drawCenteredText(ctx, 10, "Score:", COLOR_GREY, COLOR_BLACK);
+    drawCenteredText(ctx, 8, "GAME OVER!", PALETTE.GRAY, PALETTE.BLACK);
+    drawCenteredText(ctx, 10, "Score:", PALETTE.GRAY, PALETTE.BLACK);
 
-    drawText(ctx, 30, 11, gameInputs.player1Name, COLOR_GREY, COLOR_BLACK);
-    drawText(ctx, 50, 11, wins[0].toString(), COLOR_GREY, COLOR_BLACK);
+    drawText(ctx, 30, 11, gameInputs.player1Name, PALETTE.GRAY, PALETTE.BLACK);
+    drawText(ctx, 50, 11, wins[0].toString(), PALETTE.GRAY, PALETTE.BLACK);
 
-    drawText(ctx, 30, 12, gameInputs.player2Name, COLOR_GREY, COLOR_BLACK);
-    drawText(ctx, 50, 12, wins[1].toString(), COLOR_GREY, COLOR_BLACK);
+    drawText(ctx, 30, 12, gameInputs.player2Name, PALETTE.GRAY, PALETTE.BLACK);
+    drawText(ctx, 50, 12, wins[1].toString(), PALETTE.GRAY, PALETTE.BLACK);
 
-    drawCenteredText(ctx, 24, "Press any key to continue", COLOR_GREY, COLOR_BLACK);
+    drawCenteredText(ctx, 24, "Press any key to continue", PALETTE.GRAY, PALETTE.BLACK);
 
     await session?.synchronize("game-results");
 

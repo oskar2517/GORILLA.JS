@@ -1,4 +1,4 @@
-import { COLOR_BLACK, COLOR_WHITE } from "./constants";
+import { PALETTE } from "./constants";
 import { drawText } from "./graphics";
 import { readBrowserKey } from "./keyboard";
 
@@ -16,8 +16,8 @@ export function readInput(
     column: number,
     row: number,
     prompt: string,
-    foregroundColor = COLOR_WHITE,
-    backgroundColor = COLOR_BLACK,
+    foregroundColor = PALETTE.WHITE,
+    backgroundColor = PALETTE.BLACK,
     readKey: () => Promise<string> = readBrowserKey,
 ): Promise<string> {
     return new Promise(resolve => {
