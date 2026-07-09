@@ -371,7 +371,7 @@ async function explodeGorilla(
         const circleX = player.x + 3.5 * xScale + xAdjust;
         const circleY = player.y + yAdjust;
 
-        drawCircle(ctx, circleX, circleY, radius, COLOR_SKY, -1.57);
+        drawCircle(ctx, circleX, circleY, radius, COLOR_SKY, -1.57, true);
 
         /**
          * NOTE: The original game busy waits for 200 loop iterations here.

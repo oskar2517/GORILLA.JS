@@ -234,6 +234,7 @@ export function drawCircle(
     radius: number,
     color: string,
     aspect?: number,
+    ensureOverlap?: boolean,
 ): void {
     const cx = qbasicRound(centerX);
     const cy = qbasicRound(centerY);
@@ -269,11 +270,39 @@ export function drawCircle(
 
     ctx.fillStyle = color;
 
+    /**
+     * NOTE: This is a hack! It is necessary because this function does
+     * not entirely match the original implementation in QBasic. In the
+     * original, small explosions leave behind some stray pixels due to
+     * the nature of the algorithm used to draw a circle. However, the
+     * algorithm used to draw ellipses, as used when erasing a gorilla,
+     * do not seem to have this issue. So no stray pixels should be left
+     * behind after the final step of the explosion animation.
+     * 
+     * Instead of attempting to exactly match the original function,
+     * this hack extends the circle inwards slightly which will
+     * cover any gaps left behind by previous iterations of the animation.
+     */
+    const plotPoint = (x: number, y: number) => {
+        ctx.fillRect(x, y, 1, 1);
+
+        if (!ensureOverlap) {
+            return;
+        }
+
+        const inwardX = x < cx ? 1 : x > cx ? -1 : 0;
+        const inwardY = y < cy ? 1 : y > cy ? -1 : 0;
+
+        ctx.fillRect(x + inwardX, y, 1, 1);
+        ctx.fillRect(x, y + inwardY, 1, 1);
+        ctx.fillRect(x + inwardX, y + inwardY, 1, 1);
+    };
+
     while (true) {
-        ctx.fillRect(cx + x, cy + y, 1, 1);
-        ctx.fillRect(cx + x, cy - y, 1, 1);
-        ctx.fillRect(cx - x, cy + y, 1, 1);
-        ctx.fillRect(cx - x, cy - y, 1, 1);
+        plotPoint(cx + x, cy + y);
+        plotPoint(cx + x, cy - y);
+        plotPoint(cx - x, cy + y);
+        plotPoint(cx - x, cy - y);
 
         const doubledError = 2 * error;
         if (doubledError <= deltaY) {
@@ -292,8 +321,8 @@ export function drawCircle(
     }
 
     while (y < radiusY) {
-        ctx.fillRect(cx, cy + y, 1, 1);
-        ctx.fillRect(cx, cy - y, 1, 1);
+        plotPoint(cx, cy + y);
+        plotPoint(cx, cy - y);
         y++;
     }
 }
