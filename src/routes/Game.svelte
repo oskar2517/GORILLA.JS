@@ -40,7 +40,7 @@
 
         if (session !== undefined) {
             session.onTimeout = () => {
-                error = "Connection timeout";
+                error = "Error: Connection timeout";
             };
         }
 
