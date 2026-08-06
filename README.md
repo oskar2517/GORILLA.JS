@@ -9,6 +9,7 @@ Play it on [gorillas.zone](https://gorillas.zone).
 
 - Near pixel-perfect recreation of the original game (including all of its quirks).
 - WebRTC-based online multiplayer.
+- Support for mobile devices.
 
 ## Disclaimer
 
@@ -22,4 +23,4 @@ This is an unofficial fan recreation of QBasic Gorillas. It is not affiliated wi
 
 - The font used in this project is `Web437_IBM_EGA_8x14.woff` from [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/fontlist/).
 
-- The GitHub icon is taken from HackerNoon's [pixel icon library](https://github.com/hackernoon/pixel-icon-library).
+- The GitHub and emakl icons are taken from HackerNoon's [pixel icon library](https://github.com/hackernoon/pixel-icon-library).
