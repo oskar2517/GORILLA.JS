@@ -6,14 +6,40 @@
     import View from "../lib/View.svelte";
     import { createHostConnection, type HostConnection } from "../game/webrtc";
     import RoomCodeInput from "../lib/RoomCodeInput.svelte";
+    import Button from "../lib/Button.svelte";
 
     const { push } = useNavigate();
+
+    const DEFAULT_QUICK_JOIN_BUTTON_TEXT = "Copy quick join link";
 
     let roomCode = $state("");
     let error = $state("");
     let waitingForOpponent = $state(true);
     let connected = $state(false);
     let connection: HostConnection | undefined;
+
+    let quickJoinButtonValue = $state(DEFAULT_QUICK_JOIN_BUTTON_TEXT);
+    let quickJoinButtonDisabled = $derived(roomCode === "");
+
+    async function copyQuickJoinLink() {
+        if (roomCode === "") return;
+
+        const link = `${location.origin}/#/join?room=${encodeURIComponent(roomCode)}`;
+        quickJoinButtonDisabled = true;
+
+        try {
+            await navigator.clipboard.writeText(link);
+            quickJoinButtonValue = "Copied to clipboard";
+        } catch (err) {
+            console.error(err);
+            quickJoinButtonValue = "Failed to copy!";
+        }
+
+        setTimeout(() => {
+            quickJoinButtonDisabled = false;
+            quickJoinButtonValue = DEFAULT_QUICK_JOIN_BUTTON_TEXT;
+        }, 2000);
+    }
 
     onMount(async () => {
         try {
@@ -42,6 +68,8 @@
     <Comment text="Share this room code with your opponent."></Comment>
 
     <RoomCodeInput readonly={true} value={roomCode}></RoomCodeInput>
+
+    <Button value={quickJoinButtonValue} disabled={quickJoinButtonDisabled} onclick={copyQuickJoinLink}></Button>
 
     {#if waitingForOpponent && !connected}
         <Comment text="Waiting for opponent to join..."></Comment>

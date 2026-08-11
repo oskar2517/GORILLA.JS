@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { onDestroy } from "svelte";
-    import { useNavigate } from "@dvcol/svelte-simple-router";
+    import { onDestroy, onMount } from "svelte";
+    import { useNavigate, useRoute } from "@dvcol/svelte-simple-router";
     import Button from "../lib/Button.svelte";
     import Comment from "../lib/Comment.svelte";
     import { gameLaunch } from "../lib/game-session";
@@ -9,6 +9,7 @@
     import RoomCodeInput from "../lib/RoomCodeInput.svelte";
 
     const { push } = useNavigate();
+    const route = useRoute();
 
     let roomCode = $state("");
     let error = $state("");
@@ -16,6 +17,8 @@
     let connected = $state(false);
     let connection: JoinConnection | undefined;
     let roomCodeIsValid = $derived(/^\d{5}$/.test(roomCode));
+
+    roomCode = (route.location?.query?.room ?? "") as string;
 
     onDestroy(() => {
         if (!connected) {
@@ -42,7 +45,7 @@
             const session = await connection.session;
             connected = true;
             $gameLaunch = { mode: "online", session };
-            push({ path: "/game" });
+            push({ path: "/game", stripQuery: true });
         } catch (cause) {
             error = String(cause);
             connecting = false;
@@ -50,6 +53,12 @@
             connection = undefined;
         }
     }
+
+    onMount(() => {
+        if (roomCode !== "") {
+            joinGame();
+        }
+    });
 </script>
 
 <svelte:window onkeydown={handleWindowEnter} />
