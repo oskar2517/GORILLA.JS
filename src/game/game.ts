@@ -388,7 +388,7 @@ async function plotShot(
     ctx: CanvasRenderingContext2D,
     state: GameState,
     sprites: Sprites,
-    activePlayer: number,
+    activePlayer: 0 | 1,
     angleDegrees: number,
     velocity: number,
     session: MultiplayerSession | undefined,
