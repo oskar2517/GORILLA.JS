@@ -21,7 +21,7 @@
     <img class="gorilla" src={gorilla} alt="gorilla" />
 
     <Comment
-        text="This website allows you to play a recreation of the classic DOS game Gorillas."
+        text="This website allows you to play a recreation of the classic DOS/QBasic game Gorillas."
     ></Comment>
     <Comment text="You can play either against a local or an online opponent."
     ></Comment>
