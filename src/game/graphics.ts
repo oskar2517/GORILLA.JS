@@ -84,7 +84,7 @@ export function getPixelAt(
  * NOTE: The original game uses column based text rendering. In EGA mode,
  * there are 80 columns.
  */
-function columnToPixel(column: number): number {
+export function columnToPixel(column: number): number {
     if (column < 1) {
         throw new Error("column must be greater than 0");
     }
@@ -92,7 +92,7 @@ function columnToPixel(column: number): number {
     return (column - 1) * Math.floor(SCREEN_WIDTH / TEXT_COLUMN_COUNT);
 }
 
-function rowToPixel(row: number): number {
+export function rowToPixel(row: number): number {
     if (row < 1) {
         throw new Error("row must be greater than 0");
     }
@@ -100,9 +100,6 @@ function rowToPixel(row: number): number {
     return (row - 1) * Math.floor(SCREEN_HEIGHT / TEXT_ROW_COUNT);
 }
 
-/**
- * NOTE: Text wrap behavior is currently missing.
- */
 export function drawText(
     ctx: CanvasRenderingContext2D,
     column: number,
@@ -111,14 +108,29 @@ export function drawText(
     foregroundColor = PALETTE.WHITE,
     backgroundColor = COLOR_SKY,
 ): void {
-    const x = columnToPixel(column);
-    const y = rowToPixel(row);
+    const drawString = (c: number, r: number, s: string): void => {
+        const x = columnToPixel(c);
+        const y = rowToPixel(r);
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(x, y, text.length * 8, 14);
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(x, y, s.length * 8, 14);
 
-    ctx.fillStyle = foregroundColor;
-    ctx.fillText(text, x, y);
+        ctx.fillStyle = foregroundColor;
+        ctx.fillText(s, x, y);
+    };
+
+    const firstColumnLength = Math.min(TEXT_COLUMN_COUNT - column + 1, TEXT_COLUMN_COUNT);
+    const firstColumnText = text.substring(0, firstColumnLength);
+
+    drawString(column, row, firstColumnText);
+
+    // Implements text wrap behavior
+    for (let i = firstColumnLength; i < text.length; i += TEXT_COLUMN_COUNT) {
+        const s = text.substring(i, i + TEXT_COLUMN_COUNT);
+        const r = row + 1 + Math.floor(i / TEXT_COLUMN_COUNT);
+
+        drawString(1, r, s);
+    }
 }
 
 export function drawCenteredText(

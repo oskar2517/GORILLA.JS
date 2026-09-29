@@ -1,5 +1,5 @@
-import { PALETTE } from "./constants";
-import { drawText } from "./graphics";
+import { PALETTE, TEXT_COLUMN_COUNT } from "./constants";
+import { columnToPixel, drawText, rowToPixel } from "./graphics";
 import { readBrowserKey } from "./keyboard";
 
 let randomState: number | undefined;
@@ -24,16 +24,42 @@ export function readInput(
         let result = "";
         let cursorVisible = true;
 
+        const endPosition = (): { column: number, row: number } => {
+            const s = `${prompt}${result}`;
+
+            const c = (column - 1 + s.length) % TEXT_COLUMN_COUNT + 1;
+            const r = row + Math.floor((column + s.length - 1) / TEXT_COLUMN_COUNT);
+
+            return {
+                column: c,
+                row: r
+            };
+        };
+
+        const drawCursor = (visible: boolean): void => {
+            const cursorPosition = endPosition();
+
+            ctx.fillStyle = visible ? foregroundColor : backgroundColor;
+            ctx.fillRect(
+                columnToPixel(cursorPosition.column),
+                rowToPixel(cursorPosition.row) + 13,
+                8,
+                1,
+            );
+        };
+
         const draw = (): void => {
-            const cursor = cursorVisible ? "_" : " ";
+            const s = `${prompt}${result}`;
             drawText(
                 ctx,
                 column,
                 row,
-                `${prompt}${result}${cursor} `,
+                s,
                 foregroundColor,
                 backgroundColor,
             );
+
+            drawCursor(cursorVisible);
         };
 
         const finish = (): void => {
@@ -50,10 +76,14 @@ export function readInput(
         };
 
         const handleKey = (key: string): boolean => {
-            if (key.length === 1) {
+            drawCursor(false); // Clear current cursor
+
+            if (key.length === 1 && result.length < 255) { // QBasic limits inputs to 255 chars 
                 result += key;
             } else if (key === "Backspace" && result.length > 0) {
-                result = result.substring(0, result.length - 1);
+                result = result.slice(0, -1);
+                const end = endPosition();
+                drawText(ctx, end.column, end.row, " ", foregroundColor, backgroundColor); // Clear previous character
             } else if (key === "Enter") {
                 return true;
             } else {
@@ -78,7 +108,7 @@ export function readInput(
         const cursorTimer = window.setInterval(() => {
             cursorVisible = !cursorVisible;
             draw();
-        }, 100);
+        }, 120);
 
         draw();
         readKeys();
