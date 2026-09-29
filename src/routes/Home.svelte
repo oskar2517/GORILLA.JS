@@ -21,12 +21,13 @@
     <img class="gorilla" src={gorilla} alt="gorilla" />
 
     <Comment
-        text="This website allows you to play a recreation of the classic DOS/QBasic game Gorillas."
-    ></Comment>
-    <Comment text="You can play either against a local or an online opponent."
-    ></Comment>
-    <Comment text=""></Comment>
-    <Comment text="Select how you want to play:"></Comment>
+        >This website allows you to play a recreation of the classic DOS/QBasic
+        game Gorillas.</Comment
+    >
+    <Comment>You can play either against a local or an online opponent.</Comment
+    >
+    <Comment></Comment>
+    <Comment>Select how you want to play:</Comment>
 
     <Button value="Play locally" onclick={playLocally}></Button>
 
@@ -36,8 +37,16 @@
     <Button value="Join online game" onclick={() => push({ path: "/join" })}
     ></Button>
 
-    <IconLink text="View on GitHub" icon={iconGithub} href="https://github.com/oskar2517/GORILLA.JS"></IconLink>
-    <IconLink text="Contact me" icon={iconContact} href="mailto:hello@gorillas.zone"></IconLink>
+    <IconLink
+        text="View on GitHub"
+        icon={iconGithub}
+        href="https://github.com/oskar2517/GORILLA.JS"
+    ></IconLink>
+    <IconLink
+        text="Contact me"
+        icon={iconContact}
+        href="mailto:hello@gorillas.zone"
+    ></IconLink>
 </View>
 
 <style lang="scss">
