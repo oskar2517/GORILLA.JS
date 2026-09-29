@@ -127,7 +127,7 @@ export function drawText(
     // Implements text wrap behavior
     for (let i = firstColumnLength; i < text.length; i += TEXT_COLUMN_COUNT) {
         const s = text.substring(i, i + TEXT_COLUMN_COUNT);
-        const r = row + 1 + Math.floor(i / TEXT_COLUMN_COUNT);
+        const r = row + 1 + Math.floor((i - firstColumnLength) / TEXT_COLUMN_COUNT);
 
         drawString(1, r, s);
     }
