@@ -65,17 +65,21 @@
 </script>
 
 <View>
-    <Comment text="Share this room code with your opponent."></Comment>
+    <Comment>Share this room code with your opponent.</Comment>
 
     <RoomCodeInput readonly={true} value={roomCode}></RoomCodeInput>
 
-    <Button value={quickJoinButtonValue} disabled={quickJoinButtonDisabled} onclick={copyQuickJoinLink}></Button>
+    <Button
+        value={quickJoinButtonValue}
+        disabled={quickJoinButtonDisabled}
+        onclick={copyQuickJoinLink}
+    ></Button>
 
     {#if waitingForOpponent && !connected}
-        <Comment text="Waiting for opponent to join..."></Comment>
+        <Comment>Waiting for opponent to join...</Comment>
     {/if}
 
     {#if error}
-        <Comment text={error}></Comment>
+        <Comment>{error}</Comment>
     {/if}
 </View>

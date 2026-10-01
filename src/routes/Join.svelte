@@ -64,7 +64,7 @@
 <svelte:window onkeydown={handleWindowEnter} />
 
 <View>
-    <Comment text="Enter the host's room code."></Comment>
+    <Comment>Enter the host's room code.</Comment>
 
     <RoomCodeInput bind:value={roomCode} disabled={connecting || connected}
     ></RoomCodeInput>
@@ -76,6 +76,6 @@
     ></Button>
 
     {#if error}
-        <Comment text={error}></Comment>
+        <Comment>{error}</Comment>
     {/if}
 </View>
