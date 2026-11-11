@@ -12,12 +12,16 @@ function createRandomSeed(): number {
 
 /**
  * A player at this device. In online games, every key the player enters is
- * sent to the remote peer.
+ * sent to the remote peer, and synchronization is performed with the peer.
  */
 export function createLocalPlayer(session?: MultiplayerSession): Player {
     return {
-        async synchronize(): Promise<void> { },
-        async confirmImpact(): Promise<void> { },
+        async synchronize(syncId): Promise<void> {
+            await session?.synchronize(syncId);
+        },
+        async confirmImpact(x, y): Promise<void> {
+            await session?.confirmImpact(x, y);
+        },
         beginInput(request) {
             const keyReader = createKeyReader(request.onscreenKeyboardLayout);
 
@@ -77,21 +81,6 @@ export function createOnlinePlayers(session: MultiplayerSession): Players {
     return session.localPlayer === 0
         ? [localPlayer, remotePlayer]
         : [remotePlayer, localPlayer];
-}
-
-export async function synchronizePlayers(
-    players: Players,
-    syncId: string,
-): Promise<void> {
-    await Promise.all(players.map(player => player.synchronize(syncId)));
-}
-
-export async function confirmPlayerImpact(
-    players: Players,
-    x: number,
-    y: number,
-): Promise<void> {
-    await Promise.all(players.map(player => player.confirmImpact(x, y)));
 }
 
 export async function readPlayerKey(

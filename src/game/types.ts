@@ -72,13 +72,14 @@ export interface InputReader {
 
 export interface Player {
     /**
-     * Called on every player at each synchronization point. Only players
-     * connected to a remote peer need to do anything here.
+     * Waits until all players reached the synchronization point. Must be
+     * called on exactly one player per synchronization point, and that player
+     * must be the same one on every peer (e.g. the owner of an input).
      */
     synchronize(syncId: string): Promise<void>;
     /**
-     * Called on every player after a banana impact to verify that all
-     * participants computed the same impact coordinates.
+     * Verifies that all players computed the same impact coordinates.
+     * Same calling rules as synchronize.
      */
     confirmImpact(x: number, y: number): Promise<void>;
     /**

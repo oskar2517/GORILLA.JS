@@ -24,7 +24,6 @@ import {
     drawWind,
     getPixelAt,
 } from "./graphics";
-import { confirmPlayerImpact, synchronizePlayers } from "./players";
 import {
     animateSteps,
     createTimeline,
@@ -182,13 +181,12 @@ async function readShotNumber(
     ctx: CanvasRenderingContext2D,
     column: number,
     row: number,
-    players: Players,
     player: Player,
     request: InputRequest,
 ): Promise<number> {
     let result = "";
 
-    await synchronizePlayers(players, request.id);
+    await player.synchronize(request.id);
     const input = player.beginInput(request);
 
     try {
@@ -384,7 +382,7 @@ async function plotShot(
     activePlayer: 0 | 1,
     angleDegrees: number,
     velocity: number,
-    players: Players,
+    throwingPlayer: Player,
 ): Promise<ShotResult> {
     const player = state.players[activePlayer];
     const angle = angleDegrees / 180 * Math.PI;
@@ -517,7 +515,7 @@ async function plotShot(
     }
 
     if (impact) {
-        await confirmPlayerImpact(players, qbasicRound(x), qbasicRound(y));
+        await throwingPlayer.confirmImpact(qbasicRound(x), qbasicRound(y));
     }
 
     return {
@@ -530,7 +528,7 @@ async function doShot(
     ctx: CanvasRenderingContext2D,
     state: GameState,
     sprites: Sprites,
-    players: Players,
+    player: Player,
     activePlayer: 0 | 1,
     turnNumber: number,
 ): Promise<TurnResult> {
@@ -541,8 +539,7 @@ async function doShot(
         ctx,
         inputColumn + 7,
         2,
-        players,
-        players[activePlayer],
+        player,
         {
             id: `turn-${turnNumber}-angle`,
             onscreenKeyboardLayout: "number",
@@ -560,8 +557,7 @@ async function doShot(
             ctx,
             inputColumn + 10,
             3,
-            players,
-            players[activePlayer],
+            player,
             {
                 id: `turn-${turnNumber}-velocity`,
                 onscreenKeyboardLayout: "number",
@@ -588,7 +584,7 @@ async function doShot(
         activePlayer,
         angle,
         velocity,
-        players,
+        player,
     );
     if (shotResult.playerHit === NO_PLAYER) { // No player hit
         return {
@@ -638,7 +634,7 @@ export async function startGame(
     let turnNumber = 0;
 
     for (let round = 0; round < gameInputs.rounds; round++) {
-        await synchronizePlayers(players, `round-${round}`);
+        await players[0].synchronize(`round-${round}`);
 
         clearScreen(ctx, COLOR_SKY);
         await waitFor(0.5);
@@ -664,7 +660,7 @@ export async function startGame(
                 ctx,
                 state,
                 sprites,
-                players,
+                players[activePlayer],
                 activePlayer,
                 turnNumber,
             );

@@ -10,22 +10,23 @@ import {
 import type {
     GameInputAction,
     GameInputs,
+    Player,
     Players,
     Sprites,
 } from "./types";
 import { playTone } from "./audio";
-import { readPlayerKey, synchronizePlayers } from "./players";
+import { readPlayerKey } from "./players";
 
 async function readSharedInput(
     ctx: CanvasRenderingContext2D,
-    players: Players,
+    player: Player,
     inputId: string,
     column: number,
     row: number,
     prompt: string,
 ): Promise<string> {
-    await synchronizePlayers(players, inputId);
-    const input = players[0].beginInput({
+    await player.synchronize(inputId);
+    const input = player.beginInput({
         id: inputId,
         onscreenKeyboardLayout: "full",
         intent: { kind: "text" },
@@ -48,7 +49,7 @@ async function readSharedInput(
 
 async function showTextIntro(
     ctx: CanvasRenderingContext2D,
-    players: Players,
+    player: Player,
 ): Promise<void> {
     clearScreen(ctx, PALETTE.BLACK);
 
@@ -63,12 +64,12 @@ async function showTextIntro(
 
     drawCenteredText(ctx, 24, "Press any key to continue", PALETTE.GRAY, PALETTE.BLACK);
 
-    await synchronizePlayers(players, "text-intro");
+    await player.synchronize("text-intro");
 
     await playTone("MBT160O1L8CDEDCDL4ECC");
 
     let keyPressed = false;
-    const keyPromise = readPlayerKey(players[0], {
+    const keyPromise = readPlayerKey(player, {
         id: "text-intro",
         onscreenKeyboardLayout: "continue",
         intent: { kind: "continue" },
@@ -89,13 +90,13 @@ async function showTextIntro(
 
 async function readGameInputs(
     ctx: CanvasRenderingContext2D,
-    players: Players,
+    player: Player,
 ): Promise<GameInputs> {
     clearScreen(ctx, PALETTE.BLACK);
 
     let player1Name = await readSharedInput(
         ctx,
-        players,
+        player,
         "config-player-1",
         15,
         8,
@@ -109,7 +110,7 @@ async function readGameInputs(
 
     let player2Name = await readSharedInput(
         ctx,
-        players,
+        player,
         "config-player-2",
         15,
         10,
@@ -129,7 +130,7 @@ async function readGameInputs(
 
         roundsText = await readSharedInput(
             ctx,
-            players,
+            player,
             "config-rounds",
             13,
             12,
@@ -157,7 +158,7 @@ async function readGameInputs(
 
         gravityText = await readSharedInput(
             ctx,
-            players,
+            player,
             "config-gravity",
             17,
             14,
@@ -177,8 +178,8 @@ async function readGameInputs(
     drawText(ctx, 34, 19, "P = Play Game", PALETTE.GRAY, PALETTE.BLACK);
     drawText(ctx, 35, 21, "Your Choice?", PALETTE.GRAY, PALETTE.BLACK);
 
-    await synchronizePlayers(players, "config-action");
-    const key = await readPlayerKey(players[0], {
+    await player.synchronize("config-action");
+    const key = await readPlayerKey(player, {
         id: "config-action",
         onscreenKeyboardLayout: "full",
         intent: { kind: "text" },
@@ -263,7 +264,7 @@ async function showResults(
     ctx: CanvasRenderingContext2D,
     gameInputs: GameInputs,
     wins: [number, number],
-    players: Players,
+    player: Player,
 ): Promise<void> {
     clearScreen(ctx, PALETTE.BLACK);
 
@@ -278,10 +279,10 @@ async function showResults(
 
     drawCenteredText(ctx, 24, "Press any key to continue", PALETTE.GRAY, PALETTE.BLACK);
 
-    await synchronizePlayers(players, "game-results");
+    await player.synchronize("game-results");
 
     let keyPressed = false;
-    const keyPromise = readPlayerKey(players[0], {
+    const keyPromise = readPlayerKey(player, {
         id: "game-results",
         onscreenKeyboardLayout: "continue",
         intent: { kind: "continue" },
@@ -319,16 +320,22 @@ export async function runGame(
     ctx.font = '14px "IBM EGA 8x14"';
     ctx.textBaseline = "top";
 
-    while (true) {
-        await showTextIntro(ctx, players);
+    /**
+     * Player 1 configures the game. All shared inputs and the random
+     * seed are owned by this player.
+     */
+    const configuringPlayer = players[0];
 
-        const gameInputs = await readGameInputs(ctx, players);
+    while (true) {
+        await showTextIntro(ctx, configuringPlayer);
+
+        const gameInputs = await readGameInputs(ctx, configuringPlayer);
 
         if (gameInputs.nextAction === "intro") {
             await showIntro(ctx, gameInputs, sprites);
         }
 
-        setRandomSeed(await players[0].readSeed());
+        setRandomSeed(await configuringPlayer.readSeed());
 
         const results = await startGame(
             ctx,
@@ -337,6 +344,6 @@ export async function runGame(
             players,
         );
 
-        await showResults(ctx, gameInputs, results, players);
+        await showResults(ctx, gameInputs, results, configuringPlayer);
     }
 }
