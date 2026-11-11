@@ -1,19 +1,22 @@
 import type { OnscreenKeyboardLayout } from "../lib/OnscreenKeyboard.svelte";
 
-export interface Point {
+export interface Gorilla {
     x: number;
     y: number;
 }
 
-export interface Gorilla {
+export interface Building {
     x: number;
     y: number;
+    width: number;
+    height: number;
 }
 
 export interface GameState {
     gravity: number;
     wind: number;
     players: [Gorilla, Gorilla];
+    buildings: Building[];
 }
 
 export interface Sprites {

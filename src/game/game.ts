@@ -37,7 +37,6 @@ import type {
     InputRequest,
     Player,
     Players,
-    Point,
     ShotResult,
     Sprites,
     TurnResult,
@@ -51,6 +50,7 @@ function createGameState(gravity: number): GameState {
             { x: 0, y: 0 },
             { x: 0, y: 0 },
         ],
+        buildings: [],
     };
 }
 
@@ -78,15 +78,16 @@ function updateCityHeight(
 async function generateLevel(
     ctx: CanvasRenderingContext2D,
     state: GameState,
-): Promise<Point[]> {
+): Promise<void> {
     const slope = randomNumber(1, 6);
     let newHeight = slope === 2 || slope === 6 ? 130 : 15;
 
     const bottom = SCREEN_HEIGHT - 15;
     const heightStep = 10;
-    const buildings: Point[] = [];
 
     let x = 2;
+
+    state.buildings = [];
 
     /**
      * NOTE: The original loop is LOOP UNTIL x > ScrWidth - HtInc. This is
@@ -125,7 +126,13 @@ async function generateLevel(
          *    prevent this edge case.
          */
         const y = bottom - height;
-        buildings.push({ x, y });
+        state.buildings.push({
+            x,
+            y,
+            width,
+            height
+        });
+
         await drawBuilding(ctx, x, y, width, height);
 
         x += width + 2;
@@ -144,17 +151,17 @@ async function generateLevel(
     }
 
     drawWind(ctx, state.wind);
-    return buildings;
 }
 
 function placeGorillas(
     ctx: CanvasRenderingContext2D,
     state: GameState,
     sprites: Sprites,
-    buildings: Point[],
 ): void {
     const xAdjust = 14;
     const yAdjust = 30;
+
+    const buildings = state.buildings;
 
     for (let player = 0; player < state.players.length; player++) {
         const offset = randomNumber(1, 2);
@@ -639,8 +646,8 @@ export async function startGame(
         clearScreen(ctx, COLOR_SKY);
         await waitFor(0.5);
 
-        const buildings = await generateLevel(ctx, state);
-        placeGorillas(ctx, state, sprites, buildings);
+        await generateLevel(ctx, state);
+        placeGorillas(ctx, state, sprites);
         drawSun(ctx, sprites, false);
 
         let roundIsOver = false;
