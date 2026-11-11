@@ -1,4 +1,5 @@
 import { createKeyReader } from "./keyboard";
+import { randomNumber } from "./runtime";
 import type {
     InputRequest,
     MultiplayerSession,
@@ -70,6 +71,35 @@ export function createRemotePlayer(session: MultiplayerSession): Player {
     };
 }
 
+export function createCpuPlayer(): Player {
+    return {
+        async synchronize(syncId): Promise<void> { },
+        async confirmImpact(x, y): Promise<void> {
+            console.log(x, y);
+        },
+        beginInput(request) {
+            console.log(`Requested input type ${request.intent.kind}`);
+
+            const response = randomNumber(10, 70).toString().split("");
+            response.push("Enter");
+
+            return {
+                readKey(): Promise<string> {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve(response.shift()!!);
+                        }, 100);
+                    });
+                },
+                destroy(): void { },
+            };
+        },
+        async readSeed(): Promise<number> {
+            return 0;
+        },
+    };
+}
+
 export function createOfflinePlayers(): Players {
     return [createLocalPlayer(), createLocalPlayer()];
 }
@@ -81,6 +111,10 @@ export function createOnlinePlayers(session: MultiplayerSession): Players {
     return session.localPlayer === 0
         ? [localPlayer, remotePlayer]
         : [remotePlayer, localPlayer];
+}
+
+export function createCpuPlayers(): Players {
+    return [createLocalPlayer(), createCpuPlayer()];
 }
 
 export async function readPlayerKey(
