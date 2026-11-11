@@ -5,6 +5,10 @@
     import { runGame } from "../game/main";
     import type { MultiplayerSession } from "../game/types";
     import { shouldUseOnscreenKeyboard } from "../game/keyboard";
+    import {
+        createOfflinePlayers,
+        createOnlinePlayers,
+    } from "../game/players";
 
     const { push } = useNavigate();
 
@@ -45,7 +49,10 @@
         }
 
         try {
-            await runGame(canvas, session);
+            const players = session !== undefined
+                ? createOnlinePlayers(session)
+                : createOfflinePlayers();
+            await runGame(canvas, players);
         } catch (cause) {
             session?.close();
             if (error === "") {

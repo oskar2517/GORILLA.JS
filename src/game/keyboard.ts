@@ -1,12 +1,7 @@
 import { mount, unmount } from "svelte";
 import type { OnscreenKeyboardLayout } from "../lib/OnscreenKeyboard.svelte";
 import OnscreenKeyboard from "../lib/OnscreenKeyboard.svelte";
-import type { MultiplayerSession } from "./types";
-
-interface KeyReader {
-    readKey(): Promise<string>;
-    destroy(): void;
-}
+import type { InputReader } from "./types";
 
 export function shouldUseOnscreenKeyboard(): boolean {
     return window.matchMedia("(pointer: coarse)").matches;
@@ -22,7 +17,7 @@ export function readBrowserKey(): Promise<string> {
 
 function createOnscreenKeyReader(
     onscreenLayout: OnscreenKeyboardLayout,
-): KeyReader {
+): InputReader {
     const target = document.createElement("div");
     // NOTE: This is an ugly fix.
     const wrapperElement = document.querySelector("#gameWrapper");
@@ -66,7 +61,7 @@ function createOnscreenKeyReader(
     };
 }
 
-export function createKeyReader(onscreenLayout: OnscreenKeyboardLayout): KeyReader {
+export function createKeyReader(onscreenLayout: OnscreenKeyboardLayout): InputReader {
     if (!shouldUseOnscreenKeyboard()) {
         return {
             readKey: readBrowserKey,
@@ -87,35 +82,4 @@ export function createKeyReader(onscreenLayout: OnscreenKeyboardLayout): KeyRead
             onscreenKeyReader.destroy();
         },
     };
-}
-
-async function readAnyKey(onscreenLayout: OnscreenKeyboardLayout): Promise<string> {
-    const keyReader = createKeyReader(onscreenLayout);
-    try {
-        return await keyReader.readKey();
-    } finally {
-        keyReader.destroy();
-    }
-}
-
-export async function readSynchronizedKey(
-    session: MultiplayerSession | undefined,
-    inputId: string,
-    owner: 0 | 1,
-    onscreenLayout: OnscreenKeyboardLayout,
-    keyReader?: KeyReader,
-): Promise<string> {
-    if (!session) {
-        return keyReader ? keyReader.readKey() : readAnyKey(onscreenLayout);
-    }
-
-    if (session.localPlayer === owner) {
-        const key = keyReader
-            ? await keyReader.readKey()
-            : await readAnyKey(onscreenLayout);
-        session.sendKey(inputId, key);
-        return key;
-    }
-
-    return session.receiveKey(inputId);
 }

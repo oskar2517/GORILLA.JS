@@ -191,7 +191,6 @@ function createSession(
 
     return {
         localPlayer,
-        isHost: localPlayer === 0,
         sendKey(inputId, key): void {
             send({ type: "key", inputId, key });
         },

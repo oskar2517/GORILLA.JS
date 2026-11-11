@@ -24,7 +24,7 @@ import {
     drawWind,
     getPixelAt,
 } from "./graphics";
-import { readSynchronizedKey } from "./keyboard";
+import { confirmPlayerImpact, synchronizePlayers } from "./players";
 import {
     animateSteps,
     createTimeline,
@@ -35,13 +35,14 @@ import {
 import type {
     GameInputs,
     GameState,
-    MultiplayerSession,
+    InputRequest,
+    Player,
+    Players,
     Point,
     ShotResult,
     Sprites,
     TurnResult,
 } from "./types";
-import { createKeyReader } from "./keyboard";
 
 function createGameState(gravity: number): GameState {
     return {
@@ -181,27 +182,19 @@ async function readShotNumber(
     ctx: CanvasRenderingContext2D,
     column: number,
     row: number,
-    session: MultiplayerSession | undefined,
-    inputId: string,
-    activePlayer: 0 | 1,
+    players: Players,
+    player: Player,
+    request: InputRequest,
 ): Promise<number> {
     let result = "";
 
-    await session?.synchronize(inputId);
-    const keyReader = !session || session.localPlayer === activePlayer
-        ? createKeyReader("number")
-        : undefined;
+    await synchronizePlayers(players, request.id);
+    const input = player.beginInput(request);
 
     try {
         while (true) {
             drawText(ctx, column, row, `${result}_    `);
-            const key = await readSynchronizedKey(
-                session,
-                inputId,
-                activePlayer,
-                "number",
-                keyReader,
-            );
+            const key = await input.readKey();
 
             if (/^[0-9]$/.test(key)) {
                 result += key;
@@ -222,7 +215,7 @@ async function readShotNumber(
              */
         }
     } finally {
-        keyReader?.destroy();
+        input.destroy();
     }
 
     drawText(ctx, column, row, `${result} `);
@@ -391,7 +384,7 @@ async function plotShot(
     activePlayer: 0 | 1,
     angleDegrees: number,
     velocity: number,
-    session: MultiplayerSession | undefined,
+    players: Players,
 ): Promise<ShotResult> {
     const player = state.players[activePlayer];
     const angle = angleDegrees / 180 * Math.PI;
@@ -524,7 +517,7 @@ async function plotShot(
     }
 
     if (impact) {
-        await session?.confirmImpact(qbasicRound(x), qbasicRound(y));
+        await confirmPlayerImpact(players, qbasicRound(x), qbasicRound(y));
     }
 
     return {
@@ -537,8 +530,8 @@ async function doShot(
     ctx: CanvasRenderingContext2D,
     state: GameState,
     sprites: Sprites,
+    players: Players,
     activePlayer: 0 | 1,
-    session: MultiplayerSession | undefined,
     turnNumber: number,
 ): Promise<TurnResult> {
     const inputColumn = activePlayer === 0 ? 1 : 66;
@@ -548,9 +541,13 @@ async function doShot(
         ctx,
         inputColumn + 7,
         2,
-        session,
-        `turn-${turnNumber}-angle`,
-        activePlayer,
+        players,
+        players[activePlayer],
+        {
+            id: `turn-${turnNumber}-angle`,
+            onscreenKeyboardLayout: "number",
+            intent: { kind: "angle", state, playerNumber: activePlayer },
+        },
     );
 
     drawText(ctx, inputColumn, 3, "Velocity:");
@@ -563,9 +560,13 @@ async function doShot(
             ctx,
             inputColumn + 10,
             3,
-            session,
-            `turn-${turnNumber}-velocity`,
-            activePlayer,
+            players,
+            players[activePlayer],
+            {
+                id: `turn-${turnNumber}-velocity`,
+                onscreenKeyboardLayout: "number",
+                intent: { kind: "velocity", state, playerNumber: activePlayer },
+            },
         ),
     );
 
@@ -587,7 +588,7 @@ async function doShot(
         activePlayer,
         angle,
         velocity,
-        session
+        players,
     );
     if (shotResult.playerHit === NO_PLAYER) { // No player hit
         return {
@@ -629,7 +630,7 @@ export async function startGame(
     ctx: CanvasRenderingContext2D,
     sprites: Sprites,
     gameInputs: GameInputs,
-    session?: MultiplayerSession,
+    players: Players,
 ): Promise<[number, number]> {
     const state = createGameState(gameInputs.gravity);
     const wins: [number, number] = [0, 0];
@@ -637,7 +638,7 @@ export async function startGame(
     let turnNumber = 0;
 
     for (let round = 0; round < gameInputs.rounds; round++) {
-        await session?.synchronize(`round-${round}`);
+        await synchronizePlayers(players, `round-${round}`);
 
         clearScreen(ctx, COLOR_SKY);
         await waitFor(0.5);
@@ -663,8 +664,8 @@ export async function startGame(
                 ctx,
                 state,
                 sprites,
+                players,
                 activePlayer,
-                session,
                 turnNumber,
             );
             turnNumber++;

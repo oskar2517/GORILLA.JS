@@ -10,24 +10,26 @@ import {
 import type {
     GameInputAction,
     GameInputs,
-    MultiplayerSession,
+    Players,
     Sprites,
 } from "./types";
 import { playTone } from "./audio";
-import { createKeyReader, readSynchronizedKey } from "./keyboard";
+import { readPlayerKey, synchronizePlayers } from "./players";
 
 async function readSharedInput(
     ctx: CanvasRenderingContext2D,
-    session: MultiplayerSession | undefined,
+    players: Players,
     inputId: string,
     column: number,
     row: number,
     prompt: string,
 ): Promise<string> {
-    await session?.synchronize(inputId);
-    const keyReader = !session || session.localPlayer === 0
-        ? createKeyReader("full")
-        : undefined;
+    await synchronizePlayers(players, inputId);
+    const input = players[0].beginInput({
+        id: inputId,
+        onscreenKeyboardLayout: "full",
+        intent: { kind: "text" },
+    });
 
     try {
         return await readInput(
@@ -37,16 +39,16 @@ async function readSharedInput(
             prompt,
             PALETTE.GRAY,
             PALETTE.BLACK,
-            () => readSynchronizedKey(session, inputId, 0, "full", keyReader),
+            () => input.readKey(),
         );
     } finally {
-        keyReader?.destroy();
+        input.destroy();
     }
 }
 
 async function showTextIntro(
     ctx: CanvasRenderingContext2D,
-    session: MultiplayerSession | undefined,
+    players: Players,
 ): Promise<void> {
     clearScreen(ctx, PALETTE.BLACK);
 
@@ -61,17 +63,16 @@ async function showTextIntro(
 
     drawCenteredText(ctx, 24, "Press any key to continue", PALETTE.GRAY, PALETTE.BLACK);
 
-    await session?.synchronize("text-intro");
+    await synchronizePlayers(players, "text-intro");
 
     await playTone("MBT160O1L8CDEDCDL4ECC");
 
     let keyPressed = false;
-    const keyPromise = readSynchronizedKey(
-        session,
-        "text-intro",
-        0,
-        "continue"
-    ).then(() => {
+    const keyPromise = readPlayerKey(players[0], {
+        id: "text-intro",
+        onscreenKeyboardLayout: "continue",
+        intent: { kind: "continue" },
+    }).then(() => {
         keyPressed = true;
     });
     const timeline = createTimeline();
@@ -88,13 +89,13 @@ async function showTextIntro(
 
 async function readGameInputs(
     ctx: CanvasRenderingContext2D,
-    session: MultiplayerSession | undefined,
+    players: Players,
 ): Promise<GameInputs> {
     clearScreen(ctx, PALETTE.BLACK);
 
     let player1Name = await readSharedInput(
         ctx,
-        session,
+        players,
         "config-player-1",
         15,
         8,
@@ -108,7 +109,7 @@ async function readGameInputs(
 
     let player2Name = await readSharedInput(
         ctx,
-        session,
+        players,
         "config-player-2",
         15,
         10,
@@ -128,7 +129,7 @@ async function readGameInputs(
 
         roundsText = await readSharedInput(
             ctx,
-            session,
+            players,
             "config-rounds",
             13,
             12,
@@ -156,7 +157,7 @@ async function readGameInputs(
 
         gravityText = await readSharedInput(
             ctx,
-            session,
+            players,
             "config-gravity",
             17,
             14,
@@ -176,8 +177,12 @@ async function readGameInputs(
     drawText(ctx, 34, 19, "P = Play Game", PALETTE.GRAY, PALETTE.BLACK);
     drawText(ctx, 35, 21, "Your Choice?", PALETTE.GRAY, PALETTE.BLACK);
 
-    await session?.synchronize("config-action");
-    const key = await readSynchronizedKey(session, "config-action", 0, "full");
+    await synchronizePlayers(players, "config-action");
+    const key = await readPlayerKey(players[0], {
+        id: "config-action",
+        onscreenKeyboardLayout: "full",
+        intent: { kind: "text" },
+    });
     let nextAction: GameInputAction = "game";
     if (key.toLowerCase() === "v") {
         nextAction = "intro"
@@ -258,7 +263,7 @@ async function showResults(
     ctx: CanvasRenderingContext2D,
     gameInputs: GameInputs,
     wins: [number, number],
-    session: MultiplayerSession | undefined,
+    players: Players,
 ): Promise<void> {
     clearScreen(ctx, PALETTE.BLACK);
 
@@ -273,15 +278,14 @@ async function showResults(
 
     drawCenteredText(ctx, 24, "Press any key to continue", PALETTE.GRAY, PALETTE.BLACK);
 
-    await session?.synchronize("game-results");
+    await synchronizePlayers(players, "game-results");
 
     let keyPressed = false;
-    const keyPromise = readSynchronizedKey(
-        session,
-        "game-results",
-        0,
-        "continue"
-    ).then(() => {
+    const keyPromise = readPlayerKey(players[0], {
+        id: "game-results",
+        onscreenKeyboardLayout: "continue",
+        intent: { kind: "continue" },
+    }).then(() => {
         keyPressed = true;
     });
     const timeline = createTimeline();
@@ -298,7 +302,7 @@ async function showResults(
 
 export async function runGame(
     canvas: HTMLCanvasElement,
-    multiplayerSession?: MultiplayerSession,
+    players: Players,
 ): Promise<void> {
     const ctx = canvas.getContext("2d", {
         willReadFrequently: true
@@ -316,30 +320,23 @@ export async function runGame(
     ctx.textBaseline = "top";
 
     while (true) {
-        await showTextIntro(ctx, multiplayerSession);
+        await showTextIntro(ctx, players);
 
-        const gameInputs = await readGameInputs(ctx, multiplayerSession);
+        const gameInputs = await readGameInputs(ctx, players);
 
         if (gameInputs.nextAction === "intro") {
             await showIntro(ctx, gameInputs, sprites);
         }
 
-        let randomSeed: number | undefined;
-        if (multiplayerSession?.isHost) {
-            randomSeed = crypto.getRandomValues(new Uint32Array(1))[0];
-            multiplayerSession.sendSeed(randomSeed);
-        } else if (multiplayerSession) {
-            randomSeed = await multiplayerSession.receiveSeed();
-        }
-        setRandomSeed(randomSeed);
+        setRandomSeed(await players[0].readSeed());
 
         const results = await startGame(
             ctx,
             sprites,
             gameInputs,
-            multiplayerSession,
+            players,
         );
 
-        await showResults(ctx, gameInputs, results, multiplayerSession);
+        await showResults(ctx, gameInputs, results, players);
     }
 }
