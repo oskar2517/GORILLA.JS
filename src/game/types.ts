@@ -74,26 +74,9 @@ export interface InputReader {
 }
 
 export interface Player {
-    /**
-     * Waits until all players reached the synchronization point. Must be
-     * called on exactly one player per synchronization point, and that player
-     * must be the same one on every peer (e.g. the owner of an input).
-     */
     synchronize(syncId: string): Promise<void>;
-    /**
-     * Verifies that all players computed the same impact coordinates.
-     * Same calling rules as synchronize.
-     */
     confirmImpact(x: number, y: number): Promise<void>;
-    /**
-     * Called on the player that owns the requested input. The returned
-     * reader produces that player's keys until it is destroyed.
-     */
     beginInput(request: InputRequest): InputReader;
-    /**
-     * Called on the configuring player (player 1) to determine the random
-     * seed for a game.
-     */
     readSeed(): Promise<number>;
 }
 

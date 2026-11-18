@@ -1,6 +1,6 @@
 <script lang="ts">
     interface Props {
-        options: string[];
+        options: readonly string[];
         value: string;
     }
 
