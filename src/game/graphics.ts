@@ -214,9 +214,18 @@ export function drawSprite(
     const width = sprite.naturalWidth;
     const height = sprite.naturalHeight;
 
+    /**
+     * NOTE: QBASIC converts graphics coordinates to integers. Drawing at
+     * fractional coordinates would antialias the edges of the background
+     * rectangle, leaving blended pixels behind that the collision detection
+     * mistakes for obstacles (e.g. when the banana passes the sun's rays).
+     */
+    const left = qbasicRound(x);
+    const top = qbasicRound(y);
+
     // Reproduce PUT ... PSET background behavior.
     ctx.fillStyle = COLOR_SKY;
-    ctx.fillRect(x, y, width, height);
+    ctx.fillRect(left, top, width, height);
 
     const buffer = document.createElement("canvas");
     buffer.width = width;
@@ -232,7 +241,7 @@ export function drawSprite(
     bufferCtx.fillStyle = color;
     bufferCtx.fillRect(0, 0, width, height);
 
-    ctx.drawImage(buffer, Math.round(x), Math.round(y));
+    ctx.drawImage(buffer, left, top);
 }
 
 /**
