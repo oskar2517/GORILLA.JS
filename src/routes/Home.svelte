@@ -3,18 +3,12 @@
     import Comment from "../lib/Comment.svelte";
     import gorilla from "../assets/gorilla-animated.gif";
     import { useNavigate } from "@dvcol/svelte-simple-router";
-    import { gameLaunch } from "../lib/game-session";
     import View from "../lib/View.svelte";
     import IconLink from "../lib/IconLink.svelte";
     import iconGithub from "../assets/github.svg";
     import iconContact from "../assets/envelope-solid.svg";
 
     const { push } = useNavigate();
-
-    function playLocally(): void {
-        $gameLaunch = { mode: "local" };
-        push({ path: "/game" });
-    }
 </script>
 
 <View>
@@ -29,7 +23,8 @@
     <Comment></Comment>
     <Comment>Select how you want to play:</Comment>
 
-    <Button value="Play locally" onclick={playLocally}></Button>
+    <Button value="Play locally" onclick={() => push({ path: "/local" })}
+    ></Button>
 
     <Button value="Host online game" onclick={() => push({ path: "/host" })}
     ></Button>
