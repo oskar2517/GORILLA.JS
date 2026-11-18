@@ -8,9 +8,11 @@
     import { RouterView } from "@dvcol/svelte-simple-router";
     import Join from "./routes/Join.svelte";
     import Game from "./routes/Game.svelte";
+    import Local from "./routes/Local.svelte";
 
     const RouteName = {
         Home: "home",
+        Local: "local",
         Host: "host",
         Join: "join",
         Game: "game",
@@ -23,6 +25,11 @@
             name: RouteName.Home,
             path: "/",
             component: Home,
+        },
+        {
+            name: RouteName.Local,
+            path: "/local",
+            component: Local,
         },
         {
             name: RouteName.Host,
@@ -43,7 +50,7 @@
 
     const options: RouterOptions<RouteNames> = {
         routes,
-        hash: true
+        hash: true,
     } as const;
 </script>
 

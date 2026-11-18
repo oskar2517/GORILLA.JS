@@ -6,6 +6,7 @@
     import type { MultiplayerSession } from "../game/types";
     import { shouldUseOnscreenKeyboard } from "../game/keyboard";
     import {
+        createCpuGamePlayers,
         createOfflinePlayers,
         createOnlinePlayers,
     } from "../game/players";
@@ -51,7 +52,9 @@
         try {
             const players = session !== undefined
                 ? createOnlinePlayers(session)
-                : createOfflinePlayers();
+                : launch.mode === "cpu"
+                    ? createCpuGamePlayers(launch.difficulty)
+                    : createOfflinePlayers();
             await runGame(canvas, players);
         } catch (cause) {
             session?.close();

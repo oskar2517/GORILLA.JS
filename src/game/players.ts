@@ -1,4 +1,7 @@
+import type { CPUDifficulty } from "../lib/game-session";
+import { findConnectingThrow as calculateThrow, type Throw } from "./cpu";
 import { createKeyReader } from "./keyboard";
+import { waitFor } from "./runtime";
 import type {
     InputRequest,
     MultiplayerSession,
@@ -6,14 +9,12 @@ import type {
     Players,
 } from "./types";
 
+const CPU_KEY_DELAY = 0.1;
+
 function createRandomSeed(): number {
     return crypto.getRandomValues(new Uint32Array(1))[0];
 }
 
-/**
- * A player at this device. In online games, every key the player enters is
- * sent to the remote peer, and synchronization is performed with the peer.
- */
 export function createLocalPlayer(session?: MultiplayerSession): Player {
     return {
         async synchronize(syncId): Promise<void> {
@@ -44,10 +45,6 @@ export function createLocalPlayer(session?: MultiplayerSession): Player {
     };
 }
 
-/**
- * A player at the other end of an online session. Receives the inputs sent by
- * the peer's local player and keeps both peers synchronized.
- */
 export function createRemotePlayer(session: MultiplayerSession): Player {
     return {
         synchronize(syncId): Promise<void> {
@@ -70,8 +67,59 @@ export function createRemotePlayer(session: MultiplayerSession): Player {
     };
 }
 
+export function createCpuPlayer(difficulty: CPUDifficulty): Player {
+    let plannedThrow: Throw;
+
+    return {
+        async synchronize(): Promise<void> { },
+        async confirmImpact(): Promise<void> { },
+        beginInput({ intent }) {
+            let value: number;
+
+            switch (intent.kind) {
+                case "angle":
+                    plannedThrow = calculateThrow(
+                        intent.state,
+                        intent.playerNumber,
+                        difficulty
+                    );
+                    value = plannedThrow.angle;
+                    
+                    break;
+                case "velocity":
+                    value = plannedThrow.velocity;
+
+                    break;
+                default:
+                    throw new Error(`Requested CPU player intent ${intent.kind} unsupported`);
+            }
+
+            const keys = [...value.toString(), "Enter"];
+
+            return {
+                async readKey(): Promise<string> {
+                    await waitFor(CPU_KEY_DELAY);
+                    const key = keys.shift();
+                    if (key === undefined) {
+                        throw new Error("CPU player has no more keys");
+                    }
+                    return key;
+                },
+                destroy(): void { },
+            };
+        },
+        async readSeed(): Promise<number> {
+            return createRandomSeed();
+        },
+    };
+}
+
 export function createOfflinePlayers(): Players {
     return [createLocalPlayer(), createLocalPlayer()];
+}
+
+export function createCpuGamePlayers(difficulty: CPUDifficulty): Players {
+    return [createLocalPlayer(), createCpuPlayer(difficulty)];
 }
 
 export function createOnlinePlayers(session: MultiplayerSession): Players {
