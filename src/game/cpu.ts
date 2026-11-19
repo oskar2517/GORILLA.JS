@@ -155,7 +155,7 @@ function centerThrow(
     };
 }
 
-export function findConnectingThrow(
+export function calculateThrow(
     state: GameState,
     playerNumber: 0 | 1,
     difficulty: CPUDifficulty

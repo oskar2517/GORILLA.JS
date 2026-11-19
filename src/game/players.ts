@@ -1,5 +1,5 @@
 import type { CPUDifficulty } from "../lib/game-session";
-import { findConnectingThrow as calculateThrow, type Throw } from "./cpu";
+import { calculateThrow, type Throw } from "./cpu";
 import { createKeyReader } from "./keyboard";
 import { waitFor } from "./runtime";
 import type {
