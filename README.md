@@ -7,8 +7,9 @@ Play it on [gorillas.zone](https://gorillas.zone).
 
 ## Features
 
-- Near pixel-perfect recreation of the original game (including all of its quirks).
-- WebRTC-based online multiplayer.
+- Near pixel-perfect recreation of the original game (including most of its quirks).
+- Local and WebRTC-based online multiplayer.
+- Singleplayer against adjustable CPU opponent.
 - Support for mobile devices.
 
 ## Disclaimer
